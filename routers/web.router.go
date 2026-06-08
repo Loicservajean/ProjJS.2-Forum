@@ -7,5 +7,5 @@ import (
 )
 
 func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers) {
-	r.HandleFunc("/", tc.ListPage).Methods("GET")
+	r.HandleFunc("/", nil)
 }
