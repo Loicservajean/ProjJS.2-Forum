@@ -1,7 +1,11 @@
 package routers
 
-import "github.com/gorilla/mux"
+import (
+	"rompelago/controllers"
 
-func RegisterWebRoutes(r *mux.Router) {
+	"github.com/gorilla/mux"
+)
+
+func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers) {
 	r.HandleFunc("/", nil)
 }
