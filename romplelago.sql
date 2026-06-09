@@ -13,8 +13,8 @@ CREATE TABLE Utilisateur (
     description    VARCHAR(100),
     ban            BOOLEAN      NOT NULL DEFAULT FALSE,
     status         ENUM('user', 'admin') NOT NULL DEFAULT 'user'
-    --explication de ENUM: https://dev.mysql.com/doc/refman/8.4/en/enum.html
-    --Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C’est très pratique pour des champs comme le statut d’une commande, le type de compte ou la catégorie d’un produit.
+-- explication de ENUM: https://dev.mysql.com/doc/refman/8.4/en/enum.html
+-- Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C’est très pratique pour des champs comme le statut d’une commande, le type de compte ou la catégorie d’un produit.
 ) ENGINE=InnoDB;
 
 CREATE TABLE Mot_de_passe (
