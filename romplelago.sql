@@ -6,15 +6,31 @@ CREATE DATABASE RomPelago
 
 USE RomPelago;
 
+CREATE TABLE Fil_de_discussion (
+    id_fil_de_discussion INT         AUTO_INCREMENT PRIMARY KEY,
+    name                 VARCHAR(50) NOT NULL,
+    description          TEXT,
+    date_creation		 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    open                 BOOLEAN,
+    archive               BOOLEAN
+) ENGINE=InnoDB;
+
 CREATE TABLE Utilisateur (
     id_utilisateur INT AUTO_INCREMENT PRIMARY KEY,
+    fk_fil_de_discussion INT NOT NULL,
     pseudo         VARCHAR(20)  NOT NULL UNIQUE,
     e_mail         VARCHAR(254) NOT NULL UNIQUE,
     description    VARCHAR(100),
     ban            BOOLEAN      NOT NULL DEFAULT FALSE,
-    status         ENUM('user', 'admin') NOT NULL DEFAULT 'user'
+    status         ENUM('user', 'admin') NOT NULL DEFAULT 'user',
 # explication de ENUM: https://dev.mysql.com/doc/refman/8.4/en/enum.html
 # Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C’est très pratique pour des champs comme le statut d’une commande, le type de compte ou la catégorie d’un produit.
+    
+    CONSTRAINT fk_utilisateur_fil_de_discussion
+        FOREIGN KEY (fk_fil_de_discussion)
+        REFERENCES Fil_de_discussion(id_fil_de_discussion)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE Mot_de_passe (
@@ -32,24 +48,62 @@ CREATE TABLE Mot_de_passe (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE Fil_de_discussion (
-    id_fil_de_discussion INT         AUTO_INCREMENT PRIMARY KEY,
-    fk_utilisateur       INT         NOT NULL,
-    name                 VARCHAR(50) NOT NULL,
-    description          TEXT,
-    open                 ENUM('ouvert', 'ferme', 'archive') NOT NULL DEFAULT 'ouvert',
-
-    CONSTRAINT fk_fil_utilisateur
-        FOREIGN KEY (fk_utilisateur)
-        REFERENCES Utilisateur(id_utilisateur)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-) ENGINE=InnoDB;
 
 CREATE TABLE CategoriesDiscussion (
     id_type INT         AUTO_INCREMENT PRIMARY KEY,
     name    VARCHAR(50) NOT NULL UNIQUE,
     Description VARCHAR(100)
+) ENGINE=InnoDB;
+
+CREATE TABLE Status (
+    id_status INT         AUTO_INCREMENT PRIMARY KEY,
+    name    VARCHAR(50) NOT NULL UNIQUE,
+    Description VARCHAR(100)
+) ENGINE=InnoDB;
+
+CREATE TABLE Fil_status (
+    fk_fil  INT NOT NULL,
+    fk_status INT NOT NULL,
+
+    PRIMARY KEY (fk_fil, fk_status),
+
+    CONSTRAINT fk_filstatus_fil
+        FOREIGN KEY (fk_fil)
+        REFERENCES Fil_de_discussion(id_fil_de_discussion)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_filstatus_status
+        FOREIGN KEY (fk_status)
+        REFERENCES Status(id_status)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE Tag (
+    id_tag INT         AUTO_INCREMENT PRIMARY KEY,
+    name    VARCHAR(50) NOT NULL UNIQUE,
+    Description VARCHAR(100)
+) ENGINE=InnoDB;
+
+CREATE TABLE Fil_Tag (
+    fk_fil  INT NOT NULL,
+    fk_tag INT NOT NULL,
+
+    PRIMARY KEY (fk_fil, fk_tag),
+
+    CONSTRAINT fk_filtag_fil
+        FOREIGN KEY (fk_fil)
+        REFERENCES Fil_de_discussion(id_fil_de_discussion)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_filtag_tag
+        FOREIGN KEY (fk_tag)
+        REFERENCES Tag(id_tag)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 # Cette table fait le lien entre un fil et ses catégories, car un fil peut avoir plusieurs catégories et une catégorie peut appartenir à plusieurs fils.
@@ -77,6 +131,9 @@ CREATE TABLE Message (
     fk_fil_de_discussion INT      NOT NULL,
     fk_utilisateur       INT      NOT NULL,
     contenu              TEXT     NOT NULL,
+    nb_like    INT NOT NULL DEFAULT 0,
+    nb_dislike INT NOT NULL DEFAULT 0,
+    scorepop      INT NOT NULL DEFAULT 0,
     date_envoi           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_message_fil
@@ -86,41 +143,6 @@ CREATE TABLE Message (
         ON UPDATE CASCADE,
 
     CONSTRAINT fk_message_utilisateur
-        FOREIGN KEY (fk_utilisateur)
-        REFERENCES Utilisateur(id_utilisateur)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE Score_de_popularite (
-    id_score   INT AUTO_INCREMENT PRIMARY KEY,
-    fk_message INT NOT NULL UNIQUE,
-    nb_like    INT NOT NULL DEFAULT 0,
-    nb_dislike INT NOT NULL DEFAULT 0,
-    score      INT NOT NULL DEFAULT 0,
-
-    CONSTRAINT fk_score_message
-        FOREIGN KEY (fk_message)
-        REFERENCES Message(id_message)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE Reaction (
-    id_reaction    INT  AUTO_INCREMENT PRIMARY KEY,
-    fk_message     INT  NOT NULL,
-    fk_utilisateur INT  NOT NULL,
-    type_reaction  ENUM('like', 'dislike') NOT NULL,
-
-    UNIQUE KEY unique_reaction (fk_message, fk_utilisateur),
-
-    CONSTRAINT fk_reaction_message
-        FOREIGN KEY (fk_message)
-        REFERENCES Message(id_message)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-
-    CONSTRAINT fk_reaction_utilisateur
         FOREIGN KEY (fk_utilisateur)
         REFERENCES Utilisateur(id_utilisateur)
         ON DELETE CASCADE
