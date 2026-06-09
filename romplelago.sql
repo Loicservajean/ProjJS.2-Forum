@@ -13,8 +13,8 @@ CREATE TABLE Utilisateur (
     description    VARCHAR(100),
     ban            BOOLEAN      NOT NULL DEFAULT FALSE,
     status         ENUM('user', 'admin') NOT NULL DEFAULT 'user'
--- explication de ENUM: https://dev.mysql.com/doc/refman/8.4/en/enum.html
--- Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C’est très pratique pour des champs comme le statut d’une commande, le type de compte ou la catégorie d’un produit.
+# explication de ENUM: https://dev.mysql.com/doc/refman/8.4/en/enum.html
+# Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C’est très pratique pour des champs comme le statut d’une commande, le type de compte ou la catégorie d’un produit.
 ) ENGINE=InnoDB;
 
 CREATE TABLE Mot_de_passe (
@@ -46,12 +46,13 @@ CREATE TABLE Fil_de_discussion (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
-CREATE TABLE Type_de_discussion (
+CREATE TABLE CategoriesDiscussion (
     id_type INT         AUTO_INCREMENT PRIMARY KEY,
-    name    VARCHAR(50) NOT NULL UNIQUE
+    name    VARCHAR(50) NOT NULL UNIQUE,
+    Description VARCHAR(100)
 ) ENGINE=InnoDB;
 
--- Cette table fait le lien entre un fil et ses catégories, car un fil peut avoir plusieurs catégories et une catégorie peut appartenir à plusieurs fils.
+# Cette table fait le lien entre un fil et ses catégories, car un fil peut avoir plusieurs catégories et une catégorie peut appartenir à plusieurs fils.
 CREATE TABLE Fil_Type (
     fk_fil  INT NOT NULL,
     fk_type INT NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE Fil_Type (
 
     CONSTRAINT fk_filtype_type
         FOREIGN KEY (fk_type)
-        REFERENCES Type_de_discussion(id_type)
+        REFERENCES CategoriesDiscussion (id_type)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
