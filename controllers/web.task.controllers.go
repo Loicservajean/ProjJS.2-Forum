@@ -35,12 +35,12 @@ func InitWebFilsController(service *services.FilDiscussionService, catRepo *repo
 }
 
 func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
-	tasks, err := c.service.ReadAllFull()
+	fils, err := c.service.ReadAllFull()
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des tâches : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := c.templates.ExecuteTemplate(w, "task.list", tasks); err != nil {
+	if err := c.templates.ExecuteTemplate(w, "fils.list", fils); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
 }
