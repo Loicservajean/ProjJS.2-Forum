@@ -106,7 +106,7 @@ func (r *CategoryRepositories) ReadById(id int) (models.CategoriesDiscussion, er
 }
 
 func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
-	query := "SELECT id, titre, description, date_creation, date_echeance, statut_id, categorie_id FROM taches;"
+	query := "SELECT id, Name, Description, DateCreation, StatusId, CategorieId FROM fil_de_discussion;"
 	result, resultErr := r.dbContext.Query(query)
 	if resultErr != nil {
 		return nil, fmt.Errorf("Erreur lors de la requete - %v", resultErr)
@@ -114,7 +114,7 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 
 	defer result.Close()
 
-	var listTask []models.FilDiscussionModel
+	var listFils []models.FilDiscussionModel
 	for result.Next() {
 		var fildediscussion models.FilDiscussionModel
 		scanErr := result.Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.StatusId, &fildediscussion.CategorieId)
@@ -122,13 +122,13 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 			log.Printf("Erreur lors du scan - %v", scanErr)
 			continue
 		}
-		listTask = append(listTask, fildediscussion)
+		listFils = append(listFils, fildediscussion)
 	}
-	return listTask, nil
+	return listFils, nil
 }
 
 func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (int, error) {
-	query := "INSERT INTO `taches`(`titre`, `description`, `date_creation`, `date_echeance`, `statut_id`, `categorie_id`) VALUES (?,?,?,?,?,?);"
+	query := "INSERT INTO `fil_de_discussion`(`Name`, `Description`, `DateCreation`, `StatusId`, `CategorieId`) VALUES (?,?,?,?,?,?);"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
@@ -138,12 +138,12 @@ func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (in
 		fildediscussion.CategorieId,
 	)
 	if sqlErr != nil {
-		return -1, fmt.Errorf(" Erreur ajout tache - Erreur : \n\t %s", sqlErr.Error())
+		return -1, fmt.Errorf(" Erreur ajout Fil - Erreur : \n\t %s", sqlErr.Error())
 	}
 
 	id, idErr := sqlResult.LastInsertId()
 	if idErr != nil {
-		return -1, fmt.Errorf(" Erreur ajout tache - Erreur recuperation identifiant : \n\t %s", idErr.Error())
+		return -1, fmt.Errorf(" Erreur ajout Fil - Erreur recuperation identifiant : \n\t %s", idErr.Error())
 	}
 	return int(id), nil
 }
@@ -151,7 +151,7 @@ func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (in
 func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 	var fildediscussion models.FilDiscussionModel
 
-	query := "SELECT id, titre, description, date_creation, date_echeance, statut_id, categorie_id FROM `taches` WHERE `taches`.id = ?;"
+	query := "SELECT id, Name, Description, DateCreation, StatusId, CategorieId FROM `fil_de_discussion` WHERE `fil_de_discussion`.id = ?;"
 	sqlErr := r.dbContext.QueryRow(query, id).
 		Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.StatusId, &fildediscussion.CategorieId)
 
@@ -165,7 +165,7 @@ func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) error {
-	query := "UPDATE `taches` SET `titre`=?, `description`=?, `date_creation`=?, `date_echeance`=?, `statut_id`=?, `categorie_id`=? WHERE `taches`.id=?;"
+	query := "UPDATE `fil_de_discussion` SET `Name`=?, `Description`=?, `DateCreation`=?, `StatusId`=?, `CategorieId`=? WHERE `fil_de_discussion`.id=?;"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
@@ -193,7 +193,7 @@ func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) err
 }
 
 func (r *FilsRepositories) Delete(id int) error {
-	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM `taches` WHERE `taches`.id=?;", id)
+	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM `fil_de_discussion` WHERE `fil_de_discussion`.id=?;", id)
 	if sqlErr != nil {
 		return fmt.Errorf("Erreur suppression produit - Erreur : \n\t %s", sqlErr.Error())
 	}
@@ -213,13 +213,13 @@ func (r *FilsRepositories) Delete(id int) error {
 func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussionFull, error) {
 	query := `
         SELECT 
-            t.id, t.titre, t.description, t.date_creation, t.date_echeance,
-            t.statut_id, t.categorie_id,
+            t.id, t.Name, t.Description, t.DateCreation,
+            t.StatusId, t.CategorieId,
             c.nom, c.description,
             s.nom, s.description
-        FROM taches t
-        INNER JOIN categories c ON t.categorie_id = c.id
-        INNER JOIN statuts s ON t.statut_id = s.id;
+        FROM fil_de_discussion t
+        INNER JOIN categories c ON t.CategorieId = c.id
+        INNER JOIN statuts s ON t.StatusId = s.id;
     `
 
 	result, err := r.dbContext.Query(query)
@@ -251,13 +251,13 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDiscussionFull, error) {
 	query := `
 		SELECT 
-			t.id, t.titre, t.description, t.date_creation, t.date_echeance,
-			t.statut_id, t.categorie_id,
+			t.id, t.Name, t.Description, t.DateCreation,
+			t.StatusId, t.CategorieId,
 			c.nom, c.description,
 			s.nom, s.description
-		FROM taches t
-		INNER JOIN categories c ON t.categorie_id = c.id
-		INNER JOIN statuts s ON t.statut_id = s.id
+		FROM fil_de_discussion t
+		INNER JOIN categories c ON t.CategorieId = c.id
+		INNER JOIN statuts s ON t.StatusId = s.id
 		WHERE t.id = ?;
 	`
 
