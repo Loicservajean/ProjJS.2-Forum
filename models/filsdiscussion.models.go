@@ -5,7 +5,7 @@ type FilDiscussionModel struct {
 	Name         string
 	Description  string
 	DateCreation string
-	StatusId     int
+	Open         int
 	CategorieId  int
 	TagId        int
 	Creator      Utilisateur
@@ -17,7 +17,7 @@ type FilDiscussionWithCategorie struct {
 	Name                 string
 	Description          string
 	DateCreation         string
-	StatusId             int
+	Open                 int
 	CategorieId          int
 	TagId                int
 	Creator              Utilisateur
@@ -31,7 +31,7 @@ type FilDiscussionFull struct {
 	Name                 string
 	Description          string
 	DateCreation         string
-	StatusId             int
+	Open                 int
 	CategorieId          int
 	TagId                int
 	Creator              Utilisateur
