@@ -32,7 +32,7 @@ func InitFilsRepositories(dbContext *sql.DB) *FilsRepositories {
 }
 
 func (r *StatusRepositories) ReadAll() ([]models.StatusModel, error) {
-	query := "SELECT id, nom, description FROM statuts;"
+	query := "SELECT id_status, name, Description FROM Status;"
 	result, resultErr := r.dbContext.Query(query)
 	if resultErr != nil {
 		return nil, fmt.Errorf("Erreur lors de la requête - %v", resultErr)
@@ -55,7 +55,7 @@ func (r *StatusRepositories) ReadAll() ([]models.StatusModel, error) {
 func (r *StatusRepositories) ReadById(id int) (models.StatusModel, error) {
 	var status models.StatusModel
 
-	query := "SELECT id, nom, description FROM statuts WHERE id = ?;"
+	query := "SELECT id_status, name, Description FROM Status WHERE id_status = ?;"
 	sqlErr := r.dbContext.QueryRow(query, id).
 		Scan(&status.Id, &status.Nom, &status.Description)
 
@@ -69,7 +69,7 @@ func (r *StatusRepositories) ReadById(id int) (models.StatusModel, error) {
 }
 
 func (r *CategoryRepositories) ReadAll() ([]models.CategoriesDiscussion, error) {
-	query := "SELECT id, nom, description FROM categories;"
+	query := "SELECT id_type, name, Description FROM CategoriesDiscussion;"
 	result, resultErr := r.dbContext.Query(query)
 	if resultErr != nil {
 		return nil, fmt.Errorf("Erreur lors de la requête - %v", resultErr)
@@ -92,7 +92,7 @@ func (r *CategoryRepositories) ReadAll() ([]models.CategoriesDiscussion, error) 
 func (r *CategoryRepositories) ReadById(id int) (models.CategoriesDiscussion, error) {
 	var category models.CategoriesDiscussion
 
-	query := "SELECT id, nom, description FROM categories WHERE id = ?;"
+	query := "SELECT id_type, name, Description FROM CategoriesDiscussion WHERE id_type = ?;"
 	sqlErr := r.dbContext.QueryRow(query, id).
 		Scan(&category.Id, &category.Name, &category.Description)
 
@@ -106,7 +106,7 @@ func (r *CategoryRepositories) ReadById(id int) (models.CategoriesDiscussion, er
 }
 
 func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
-	query := "SELECT id, Name, Description, DateCreation, StatusId, CategorieId FROM fil_de_discussion;"
+	query := "SELECT id_fil_de_discussion, name, description, date_creation, open, archive FROM Fil_de_discussion;"
 	result, resultErr := r.dbContext.Query(query)
 	if resultErr != nil {
 		return nil, fmt.Errorf("Erreur lors de la requete - %v", resultErr)
@@ -117,7 +117,7 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 	var listFils []models.FilDiscussionModel
 	for result.Next() {
 		var fildediscussion models.FilDiscussionModel
-		scanErr := result.Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.StatusId, &fildediscussion.CategorieId)
+		scanErr := result.Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.Open, &fildediscussion.Archive)
 		if scanErr != nil {
 			log.Printf("Erreur lors du scan - %v", scanErr)
 			continue
@@ -128,13 +128,14 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (int, error) {
-	query := "INSERT INTO `fil_de_discussion`(`Name`, `Description`, `DateCreation`, `StatusId`, `CategorieId`) VALUES (?,?,?,?,?,?);"
+	query := "INSERT INTO `fil_de_discussion`(`Name`, `Description`, `DateCreation`, `Open`, `Archive`) VALUES (?,?,?,?,?,?);"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
 		fildediscussion.Description,
 		fildediscussion.DateCreation,
-		fildediscussion.StatusId,
+		fildediscussion.Open,
+		fildediscussion.Archive,
 		fildediscussion.CategorieId,
 	)
 	if sqlErr != nil {
@@ -151,9 +152,9 @@ func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (in
 func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 	var fildediscussion models.FilDiscussionModel
 
-	query := "SELECT id, Name, Description, DateCreation, StatusId, CategorieId FROM `fil_de_discussion` WHERE `fil_de_discussion`.id = ?;"
+	query := "SELECT id_fil_de_discussion, name, description, date_creation, open, archive FROM `Fil_de_discussion` WHERE `Fil_de_discussion`.id_fil_de_discussion = ?;"
 	sqlErr := r.dbContext.QueryRow(query, id).
-		Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.StatusId, &fildediscussion.CategorieId)
+		Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.Open, &fildediscussion.Archive)
 
 	if sqlErr != nil {
 		if sqlErr == sql.ErrNoRows {
@@ -165,19 +166,19 @@ func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) error {
-	query := "UPDATE `fil_de_discussion` SET `Name`=?, `Description`=?, `DateCreation`=?, `StatusId`=?, `CategorieId`=? WHERE `fil_de_discussion`.id=?;"
+	query := "UPDATE `Fil_de_discussion` SET `name`=?, `description`=?, `date_creation`=?, `open`=?, `archive`=? WHERE `Fil_de_discussion`.id=?;"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
 		fildediscussion.Description,
 		fildediscussion.DateCreation,
-		fildediscussion.StatusId,
-		fildediscussion.CategorieId,
+		fildediscussion.Open,
+		fildediscussion.Archive,
 		fildediscussion.Id,
 	)
 
 	if sqlErr != nil {
-		return fmt.Errorf("Erreur modification produit - Erreur : \n\t %s", sqlErr.Error())
+		return fmt.Errorf("Erreur modification fil - Erreur : \n\t %s", sqlErr.Error())
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
@@ -186,16 +187,16 @@ func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) err
 	}
 
 	if rowsAffected <= 0 {
-		return fmt.Errorf("Erreur modification produit - Aucune ligne modifiée")
+		return fmt.Errorf("Erreur modification fil - Aucune ligne modifiée")
 	}
 
 	return nil
 }
 
 func (r *FilsRepositories) Delete(id int) error {
-	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM `fil_de_discussion` WHERE `fil_de_discussion`.id=?;", id)
+	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM `Fil_de_discussion` WHERE `Fil_de_discussion`.id=?;", id)
 	if sqlErr != nil {
-		return fmt.Errorf("Erreur suppression produit - Erreur : \n\t %s", sqlErr.Error())
+		return fmt.Errorf("Erreur suppression fil - Erreur : \n\t %s", sqlErr.Error())
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
@@ -204,7 +205,7 @@ func (r *FilsRepositories) Delete(id int) error {
 	}
 
 	if rowsAffected <= 0 {
-		return fmt.Errorf("Erreur suppression produit - Aucune ligne supprimée")
+		return fmt.Errorf("Erreur suppression fil - Aucune ligne supprimée")
 	}
 
 	return nil
@@ -214,12 +215,12 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 	query := `
         SELECT 
             t.id, t.Name, t.Description, t.DateCreation,
-            t.StatusId, t.CategorieId,
+            t.Open, t.Archive,
             c.nom, c.description,
             s.nom, s.description
         FROM fil_de_discussion t
-        INNER JOIN categories c ON t.CategorieId = c.id
-        INNER JOIN statuts s ON t.StatusId = s.id;
+        INNER JOIN CategoriesDiscussion c ON t.id_type = c.id
+        INNER JOIN Status s ON t.id_status = s.id;
     `
 
 	result, err := r.dbContext.Query(query)
@@ -234,7 +235,7 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 		var t models.FilDiscussionFull
 		scanErr := result.Scan(
 			&t.Id, &t.Name, &t.Description, &t.DateCreation,
-			&t.StatusId, &t.CategorieId,
+			&t.Open, &t.Archive,
 			&t.CategorieName, &t.CategorieDescription,
 			&t.TagName, &t.TagDescription,
 		)
@@ -252,25 +253,25 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 	query := `
 		SELECT 
 			t.id, t.Name, t.Description, t.DateCreation,
-			t.StatusId, t.CategorieId,
+			t.Open, t.Archive,
 			c.nom, c.description,
 			s.nom, s.description
 		FROM fil_de_discussion t
-		INNER JOIN categories c ON t.CategorieId = c.id
-		INNER JOIN statuts s ON t.StatusId = s.id
+		INNER JOIN CategoriesDiscussion c ON t.id_type = c.id
+		INNER JOIN Status s ON t.id_status = s.id
 		WHERE t.id = ?;
 	`
 
 	var t models.FilDiscussionFull
 	err := r.dbContext.QueryRow(query, id).Scan(
 		&t.Id, &t.Name, &t.Description, &t.DateCreation,
-		&t.StatusId, &t.CategorieId,
+		&t.Open, &t.Archive,
 		&t.CategorieName, &t.CategorieDescription,
 		&t.TagName, &t.TagDescription,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.FilDiscussionFull{}, fmt.Errorf("tâche introuvable")
+			return models.FilDiscussionFull{}, fmt.Errorf("fil introuvable")
 		}
 		return models.FilDiscussionFull{}, fmt.Errorf("erreur lors de la requête - %v", err)
 	}

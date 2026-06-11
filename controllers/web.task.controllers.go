@@ -37,7 +37,7 @@ func InitWebFilsController(service *services.FilDiscussionService, catRepo *repo
 func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 	fils, err := c.service.ReadAllFull()
 	if err != nil {
-		http.Error(w, "Erreur lors de la récupération des tâches : "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erreur lors de la récupération des fils : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if err := c.templates.ExecuteTemplate(w, "fils.list", fils); err != nil {
@@ -88,7 +88,7 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		Name:         r.FormValue("titre"),
 		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
-		StatusId:     statutId,
+		Open:         statutId,
 		CategorieId:  categorieId,
 	}
 
