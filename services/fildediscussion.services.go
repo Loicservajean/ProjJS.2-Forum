@@ -30,7 +30,7 @@ func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error
 		Id:          fils.Id,
 		Name:        fils.Name,
 		Description: fils.Description,
-		StatusId:    fils.StatusId,
+		Open:        fils.Open,
 		CategorieId: fils.CategorieId,
 		TagId:       fils.TagId,
 		Creator:     fils.Creator,
