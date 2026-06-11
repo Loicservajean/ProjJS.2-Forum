@@ -252,8 +252,8 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDiscussionFull, error) {
 	query := `
 		SELECT 
-			t.id_fil_de_discussion, t.Name, t.Description, t.DateCreation,
-			t.Open, t.Archive,
+			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
+			t.open, t.archive,
 			c.nom, c.description,
 			s.nom, s.description
 		FROM fil_de_discussion t
