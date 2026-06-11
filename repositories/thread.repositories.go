@@ -214,7 +214,7 @@ func (r *FilsRepositories) Delete(id int) error {
 func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussionFull, error) {
 	query := `
         SELECT 
-            t.id, t.Name, t.Description, t.DateCreation,
+            t.id_fil_de_discussion, t.Name, t.Description, t.DateCreation,
             t.Open, t.Archive,
             c.nom, c.description,
             s.nom, s.description
@@ -252,14 +252,14 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDiscussionFull, error) {
 	query := `
 		SELECT 
-			t.id, t.Name, t.Description, t.DateCreation,
+			t.id_fil_de_discussion, t.Name, t.Description, t.DateCreation,
 			t.Open, t.Archive,
 			c.nom, c.description,
 			s.nom, s.description
 		FROM fil_de_discussion t
 		INNER JOIN CategoriesDiscussion c ON t.id_type = c.id
 		INNER JOIN Status s ON t.id_status = s.id
-		WHERE t.id = ?;
+		WHERE t.id_fil_de_discussion = ?;
 	`
 
 	var t models.FilDiscussionFull
