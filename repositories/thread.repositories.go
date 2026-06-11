@@ -128,7 +128,7 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (int, error) {
-	query := "INSERT INTO `fil_de_discussion`(`Name`, `Description`, `DateCreation`, `Open`, `Archive`) VALUES (?,?,?,?,?,?);"
+	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `open`, `archive`) VALUES (?,?,?,?,?,?);"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
@@ -214,8 +214,8 @@ func (r *FilsRepositories) Delete(id int) error {
 func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussionFull, error) {
 	query := `
         SELECT 
-            t.id_fil_de_discussion, t.Name, t.Description, t.DateCreation,
-            t.Open, t.Archive,
+            t.id_fil_de_discussion, t.name, t.description, t.date_creation,
+            t.open, t.archive,
             c.nom, c.description,
             s.nom, s.description
         FROM fil_de_discussion t
@@ -252,8 +252,8 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDiscussionFull, error) {
 	query := `
 		SELECT 
-			t.id_fil_de_discussion, t.Name, t.Description, t.DateCreation,
-			t.Open, t.Archive,
+			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
+			t.open, t.archive,
 			c.nom, c.description,
 			s.nom, s.description
 		FROM fil_de_discussion t
