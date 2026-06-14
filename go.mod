@@ -8,4 +8,9 @@ require (
 	github.com/joho/godotenv v1.5.1
 )
 
-require filippo.io/edwards25519 v1.2.0 // indirect
+require golang.org/x/crypto v0.53.0 
+
+require (
+	filippo.io/edwards25519 v1.2.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1
+)

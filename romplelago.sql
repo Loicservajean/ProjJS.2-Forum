@@ -17,7 +17,7 @@ CREATE TABLE Fil_de_discussion (
 
 CREATE TABLE Utilisateur (
     id_utilisateur INT AUTO_INCREMENT PRIMARY KEY,
-    fk_fil_de_discussion INT NOT NULL,
+    fk_fil_de_discussion INT NULL,
     pseudo         VARCHAR(20)  NOT NULL UNIQUE,
     e_mail         VARCHAR(254) NOT NULL UNIQUE,
     description    VARCHAR(100),
