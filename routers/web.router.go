@@ -23,6 +23,4 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 	r.HandleFunc("/inscription", ac.RegisterAction).Methods("POST")
 	r.HandleFunc("/connection", ac.LoginPage).Methods("GET")
 	r.HandleFunc("/connection", ac.LoginAction).Methods("POST")
-	r.HandleFunc("/logout", ac.LogoutAction).Methods("POST")
-	r.HandleFunc("/user", ac.UserPage).Methods("GET")
 }
