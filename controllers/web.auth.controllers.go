@@ -3,11 +3,8 @@ package controllers
 import (
 	"html/template"
 	"net/http"
-	"rompelago/auth"
 	"rompelago/dto"
-	"rompelago/middleware"
 	"rompelago/services"
-	"strconv"
 )
 
 type WebAuthControllers struct {
