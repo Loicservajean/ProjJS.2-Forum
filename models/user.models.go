@@ -7,4 +7,5 @@ type Utilisateur struct {
 	Description string
 	Favoris     []FilDiscussionModel
 	StatusBan   int
+	Role        string
 }
