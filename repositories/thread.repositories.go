@@ -218,7 +218,7 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
             t.open, t.archive,
             c.name, c.Description,
             s.name, s.Description
-        FROM fil_de_discussion t
+        FROM Fil_de_discussion t
         LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
 		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
@@ -258,7 +258,7 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 			t.open, t.archive,
 			c.name, c.Description,
 			s.name, s.Description
-		FROM fil_de_discussion t
+		FROM Fil_de_discussion t
 		LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
 		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
