@@ -85,6 +85,26 @@ func (r *UserRepositories) Create(pseudo, email, hashedPassword string) (int, er
 	return int(userID), nil
 }
 
+// FindById recherche un utilisateur par son identifiant.
+func (r *UserRepositories) FindById(id int) (models.Utilisateur, error) {
+	query := `
+		SELECT id_utilisateur, pseudo, e_mail, description, ban, status
+		FROM Utilisateur
+		WHERE id_utilisateur = ?
+	`
+	var user models.Utilisateur
+	err := r.dbContext.QueryRow(query, id).Scan(
+		&user.Id, &user.Name, &user.Email, &user.Description, &user.StatusBan, &user.Role,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.Utilisateur{}, fmt.Errorf("utilisateur introuvable")
+		}
+		return models.Utilisateur{}, fmt.Errorf("erreur lors de la requête - %v", err)
+	}
+	return user, nil
+}
+
 // ExistsByPseudoOrEmail vérifie si un pseudo ou un email est déjà utilisé.
 func (r *UserRepositories) ExistsByPseudoOrEmail(pseudo, email string) (bool, error) {
 	var count int
