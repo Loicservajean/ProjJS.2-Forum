@@ -42,6 +42,7 @@ header {
   display: flex;
   align-items: center;
   gap: 1rem;
+  width: 100%;
 }
 
 .logo {
@@ -53,4 +54,46 @@ header {
 .h1 {
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-links {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.auth-links a {
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
+}
+
+.btn-login {
+  background: transparent;
+  color: #055160;
+  border: 1px solid rgba(5,81,96,0.15);
+}
+
+.btn-login:hover {
+  background: rgba(5,81,96,0.05);
+}
+
+.btn-register {
+  background: #055160;
+  color: #ffffff;
+  border: 1px solid rgba(5,81,96,0.9);
+}
+
+.btn-register:hover {
+  filter: brightness(0.95);
 }

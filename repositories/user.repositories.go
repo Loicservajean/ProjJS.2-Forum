@@ -58,7 +58,7 @@ func (r *UserRepositories) Create(pseudo, email, hashedPassword string) (int, er
 	// Insertion de l'utilisateur (fk_fil_de_discussion vaut 0 par défaut tant que l'utilisateur n'a pas de fil propre)
 	res, err := tx.Exec(
 		`INSERT INTO Utilisateur (pseudo, e_mail, description, ban, status, fk_fil_de_discussion)
-		 VALUES (?, ?, '', FALSE, 'user', 0)`,
+		 VALUES (?, ?, '', FALSE, 'user', NULL)`,
 		pseudo, email,
 	)
 	if err != nil {

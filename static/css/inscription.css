@@ -1,0 +1,107 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-image: url("/static/assets/ocean.png");
+  background-size: cover;
+  background-position: center;
+  color: #102a43;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  min-height: calc(100vh - 120px);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: auto;
+  height: 100px;
+  padding: 24px 32px;
+  background-size: auto 100%;
+  background-image: url("/static/assets/cloud.png");
+  background-color: #82f9ff00;
+}
+
+.align-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  width: 48px;
+  height: auto;
+  object-fit: cover;
+}
+
+.text {
+  width: 300px;
+  height: auto;
+  object-fit: cover;
+}
+
+.box {
+  width: min(420px, 100%);
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #ffffffcc;
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+}
+
+form {
+  display: grid;
+  gap: 1rem;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+input {
+  padding: 0.95rem 1rem;
+  width: 92%;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+button {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border: none;
+  border-radius: 12px;
+  background-color: #38bdf8;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: #0ea5e9;
+  transform: translateY(-1px);
+}
+
+.form-error {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+
+
