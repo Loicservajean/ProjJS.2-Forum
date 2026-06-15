@@ -1,0 +1,52 @@
+{{define "nouveau"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouveau fil - Rompelago</title>
+  <link rel="stylesheet" href="/static/css/nouveau.css">
+</head>
+<body>
+  <header class="header">
+    <div class="align-header">
+      <div class="brand">
+        <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+        <div>
+          <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+        </div>
+      </div>
+      <div class="auth-links">
+        <a class="btn-login" href="/connection">connection</a>
+        <a class="btn-register" href="/inscription">Inscription</a>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="box">
+      <h1>Créer un nouveau fil</h1>
+      <p>Publie un nouveau sujet de discussion sur le forum.</p>
+      <form action="/nouveaufil" method="post">
+        <label for="titre">Titre</label>
+        <input id="titre" name="titre" type="text" placeholder="Titre du fil" required>
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="6" placeholder="Décris ton sujet" required></textarea>
+
+        <label for="categorie_id">Catégorie</label>
+        <select id="categorie_id" name="categorie_id">
+          {{range .Categories}}
+            <option value="{{.Id}}">{{.Name}}</option>
+          {{end}}
+        </select>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-register">Publier</button>
+          <a href="/forum" class="cancel-link">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}
