@@ -58,7 +58,7 @@ func (r *UserRepositories) Create(pseudo, email, hashedPassword string) (int, er
 	// Insertion de l'utilisateur (fk_fil_de_discussion vaut 0 par défaut tant que l'utilisateur n'a pas de fil propre)
 	res, err := tx.Exec(
 		`INSERT INTO Utilisateur (pseudo, e_mail, description, ban, status, fk_fil_de_discussion)
-		 VALUES (?, ?, '', FALSE, 'user', 0)`,
+		 VALUES (?, ?, '', FALSE, 'user', NULL)`,
 		pseudo, email,
 	)
 	if err != nil {
@@ -83,6 +83,26 @@ func (r *UserRepositories) Create(pseudo, email, hashedPassword string) (int, er
 		return -1, fmt.Errorf("erreur commit transaction - %v", err)
 	}
 	return int(userID), nil
+}
+
+// FindById recherche un utilisateur par son identifiant.
+func (r *UserRepositories) FindById(id int) (models.Utilisateur, error) {
+	query := `
+		SELECT id_utilisateur, pseudo, e_mail, description, ban, status
+		FROM Utilisateur
+		WHERE id_utilisateur = ?
+	`
+	var user models.Utilisateur
+	err := r.dbContext.QueryRow(query, id).Scan(
+		&user.Id, &user.Name, &user.Email, &user.Description, &user.StatusBan, &user.Role,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.Utilisateur{}, fmt.Errorf("utilisateur introuvable")
+		}
+		return models.Utilisateur{}, fmt.Errorf("erreur lors de la requête - %v", err)
+	}
+	return user, nil
 }
 
 // ExistsByPseudoOrEmail vérifie si un pseudo ou un email est déjà utilisé.

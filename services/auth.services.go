@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"rompelago/auth"
 	"rompelago/dto"
+	"rompelago/models"
 	"rompelago/repositories"
 	"strconv"
 	"unicode"
@@ -66,7 +67,7 @@ func (s *AuthService) Login(req dto.LoginRequestDto) (dto.LoginResponseDto, erro
 	return dto.LoginResponseDto{
 		Type:        "Bearer",
 		AccessToken: token,
-		ExpiresIn:   1500,
+		ExpiresIn:   900,
 	}, nil
 }
 
@@ -95,4 +96,9 @@ func (s *AuthService) Register(req dto.RegisterRequestDto) error {
 
 	_, err = s.userRepo.Create(req.Pseudo, req.Email, string(hashed))
 	return err
+}
+
+// GetById récupère un utilisateur via son identifiant (utilisé après validation du JWT).
+func (s *AuthService) GetById(id int) (models.Utilisateur, error) {
+	return s.userRepo.FindById(id)
 }

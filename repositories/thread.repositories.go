@@ -128,7 +128,7 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (int, error) {
-	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `open`, `archive`) VALUES (?,?,?,?,?,?);"
+	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `open`, `archive`) VALUES (?,?,?,?,?);"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
@@ -136,7 +136,6 @@ func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (in
 		fildediscussion.DateCreation,
 		fildediscussion.Open,
 		fildediscussion.Archive,
-		fildediscussion.CategorieId,
 	)
 	if sqlErr != nil {
 		return -1, fmt.Errorf(" Erreur ajout Fil - Erreur : \n\t %s", sqlErr.Error())

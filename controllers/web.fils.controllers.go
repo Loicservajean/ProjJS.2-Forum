@@ -45,7 +45,7 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *WebFilsControllers) CreatePage(w http.ResponseWriter, r *http.Request) {
+func (c *WebFilsControllers) CreateFil(w http.ResponseWriter, r *http.Request) {
 	categories, err := c.catRepo.ReadAll()
 	if err != nil {
 		http.Error(w, "Erreur chargement catégories : "+err.Error(), http.StatusInternalServerError)
@@ -57,7 +57,7 @@ func (c *WebFilsControllers) CreatePage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	data := CreatePageData{Categories: categories, Statuts: statuts}
-	if err := c.templates.ExecuteTemplate(w, "fils.create", data); err != nil {
+	if err := c.templates.ExecuteTemplate(w, "nouveau", data); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -73,11 +73,6 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Identifiant de statut invalide", http.StatusBadRequest)
 		return
 	}
-	categorieId, err := strconv.Atoi(r.FormValue("categorie_id"))
-	if err != nil {
-		http.Error(w, "Identifiant de catégorie invalide", http.StatusBadRequest)
-		return
-	}
 
 	dateCreation := r.FormValue("date_creation")
 	if dateCreation == "" {
@@ -89,7 +84,6 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
 		Open:         statutId,
-		CategorieId:  categorieId,
 	}
 
 	if _, err := c.service.Create(fils); err != nil {
