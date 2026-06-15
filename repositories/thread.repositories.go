@@ -215,8 +215,8 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
         SELECT 
             t.id_fil_de_discussion, t.name, t.description, t.date_creation,
             t.open, t.archive,
-            c.name, c.Description,
-            s.name, s.Description
+            COALESCE(c.name, ''), COALESCE(c.Description, ''),
+            COALESCE(s.name, ''), COALESCE(s.Description, '')
         FROM Fil_de_discussion t
         LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
@@ -250,13 +250,15 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 	return list, nil
 }
 
+//Doc pour coalesce en dessous : Ceci est une fonction SQL pour Ignorer un Paramètre qui est NULL dans la Base de données (D'après ce que j'ai compris de la doc)
+/*https://learnsql.fr/blog/comment-utiliser-la-fonction-coalesce-en-sql/*/
 func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDiscussionFull, error) {
 	query := `
 		SELECT 
 			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
 			t.open, t.archive,
-			c.name, c.Description,
-			s.name, s.Description
+			COALESCE(c.name, ''), COALESCE(c.Description, ''),
+			COALESCE(s.name, ''), COALESCE(s.Description, '')
 		FROM Fil_de_discussion t
 		LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type

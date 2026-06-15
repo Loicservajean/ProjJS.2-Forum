@@ -1,0 +1,63 @@
+{{define "user.profile"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Utilisateur - Rompelago</title>
+  <link rel="stylesheet" href="/static/css/user.css">
+</head>
+<body>
+  <header class="header">
+    <div class="align-header">
+      <div class="brand">
+        <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+        <div>
+          <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+        </div>
+      </div>
+      <div class="auth-links">
+        {{if .}}
+          <form action="/logout" method="post" style="display:inline">
+            <button type="submit" class="btn-login">Se déconnecter</button>
+          </form>
+        {{else}}
+          <a class="btn-login" href="/connection">connection</a>
+          <a class="btn-register" href="/inscription">Inscription</a>
+        {{end}}
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="box">
+      <h1>Profil Utilisateur</h1>
+      {{if .}}
+        <div class="user-profile">
+          <h2>{{.Name}}</h2>
+          <p><strong>Email :</strong> {{.Email}}</p>
+          <p><strong>Rôle :</strong> {{.Role}}</p>
+          <p><strong>Description :</strong> {{.Description}}</p>
+          <p><strong>Statut :</strong> {{if eq .StatusBan 0}}Actif{{else}}Banni{{end}}</p>
+          
+          {{if .Favoris}}
+            <h3>Fils favoris</h3>
+            <ul>
+              {{range .Favoris}}
+                <li><a href="/fil/{{.Id}}">{{.Name}}</a></li>
+              {{end}}
+            </ul>
+          {{else}}
+            <p>Aucun fil favori pour le moment.</p>
+          {{end}}
+          
+          <a href="/forum">Retour au forum</a>
+        </div>
+      {{else}}
+        <p>Veuillez vous connecter pour voir votre profil.</p>
+        <a href="/connection">Se connecter</a>
+      {{end}}
+    </div>
+  </main>
+</body>
+</html>
+{{end}}
