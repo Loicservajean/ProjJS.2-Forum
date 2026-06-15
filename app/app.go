@@ -37,8 +37,9 @@ func InitApp() *App {
 
 	// --- Serveur Web (port 8081) ---
 	webFilsController := controllers.InitWebFilsController(filsService, catRepo, statRepo)
+	webAuthController := controllers.InitWebAuthController(authService)
 	webRouter := mux.NewRouter()
-	routers.RegisterWebRoutes(webRouter, webFilsController)
+	routers.RegisterWebRoutes(webRouter, webFilsController, webAuthController)
 
 	// --- Serveur API (port 8080) ---
 	apiAuthController := controllers.InitApiAuthController(authService)
