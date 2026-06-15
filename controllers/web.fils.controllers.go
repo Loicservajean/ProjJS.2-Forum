@@ -68,12 +68,6 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	statutId, err := strconv.Atoi(r.FormValue("statu_id"))
-	if err != nil {
-		http.Error(w, "Identifiant de statut invalide", http.StatusBadRequest)
-		return
-	}
-
 	dateCreation := r.FormValue("date_creation")
 	if dateCreation == "" {
 		dateCreation = time.Now().Format("2006-01-02")
@@ -83,7 +77,6 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		Name:         r.FormValue("titre"),
 		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
-		Open:         statutId,
 	}
 
 	if _, err := c.service.Create(fils); err != nil {
@@ -91,7 +84,7 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }
 
 func (c *WebFilsControllers) DeletePage(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +113,7 @@ func (c *WebFilsControllers) DeleteAction(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Erreur lors de la suppression : "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }
 
 func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) {

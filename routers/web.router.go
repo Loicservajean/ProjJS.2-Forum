@@ -19,6 +19,7 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 
 	r.HandleFunc("/forum", tc.ListPage).Methods("GET")
 	r.HandleFunc("/nouveau", tc.CreateFil).Methods("GET")
+	r.HandleFunc("/nouveaufil", tc.CreateAction).Methods("POST")
 	r.HandleFunc("/inscription", ac.RegisterPage).Methods("GET")
 	r.HandleFunc("/inscription", ac.RegisterAction).Methods("POST")
 	r.HandleFunc("/connection", ac.LoginPage).Methods("GET")
