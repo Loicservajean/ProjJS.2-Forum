@@ -82,8 +82,7 @@ func (c *WebAuthControllers) LoginAction(w http.ResponseWriter, r *http.Request)
 		Password: r.FormValue("password"),
 	}
 
-	resp, err := c.authService.Login(req)
-	if err != nil {
+	if _, err := c.authService.Login(req); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		c.templates.ExecuteTemplate(w, "connection", map[string]string{
 			"Error": err.Error(),
@@ -91,58 +90,5 @@ func (c *WebAuthControllers) LoginAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Le JWT est stocké dans un cookie HttpOnly afin d'être renvoyé
-	// automatiquement par le navigateur sur les pages web suivantes.
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    resp.AccessToken,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   resp.ExpiresIn,
-	})
-
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
-}
-
-// POST /logout
-func (c *WebAuthControllers) LogoutAction(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1,
-	})
-	http.Redirect(w, r, "/connection", http.StatusSeeOther)
-}
-
-// GET /user
-func (c *WebAuthControllers) UserPage(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
-	if !ok {
-		// Non connecté : on affiche la page avec un utilisateur vide (nil),
-		// le template invite alors à se connecter.
-		if err := c.templates.ExecuteTemplate(w, "user.profile", nil); err != nil {
-			http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	userID, err := strconv.Atoi(claims.UserID)
-	if err != nil {
-		http.Error(w, "Identifiant utilisateur invalide dans le token", http.StatusInternalServerError)
-		return
-	}
-
-	user, err := c.authService.GetById(userID)
-	if err != nil {
-		http.Error(w, "Erreur récupération profil : "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := c.templates.ExecuteTemplate(w, "user.profile", user); err != nil {
-		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
-	}
 }
