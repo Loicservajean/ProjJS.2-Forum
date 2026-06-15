@@ -131,6 +131,7 @@ CREATE TABLE Message (
     fk_fil_de_discussion INT      NOT NULL,
     fk_utilisateur       INT      NOT NULL,
     contenu              TEXT     NOT NULL,
+    name VARCHAR(50) NOT NULL ,
     nb_like    INT NOT NULL DEFAULT 0,
     nb_dislike INT NOT NULL DEFAULT 0,
     scorepop      INT NOT NULL DEFAULT 0,
