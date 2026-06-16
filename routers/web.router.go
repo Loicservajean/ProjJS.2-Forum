@@ -24,8 +24,8 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 
 	// Fils de discussion
 	r.HandleFunc("/forum", tc.ListPage).Methods("GET")
-	r.HandleFunc("/nouveau", tc.CreateFil).Methods("GET")
-	r.HandleFunc("/nouveaufil", tc.CreateAction).Methods("POST")
+	r.Handle("/nouveau", middleware.RequireAuth(http.HandlerFunc(tc.CreateFil))).Methods("GET")
+	r.Handle("/nouveaufil", middleware.RequireAuth(http.HandlerFunc(tc.CreateAction))).Methods("POST")
 	r.HandleFunc("/fil/{id}", tc.DetailPage).Methods("GET")
 
 	// Messages (Normalement non accessible sans être connecté)

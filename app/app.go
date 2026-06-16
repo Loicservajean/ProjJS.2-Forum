@@ -38,7 +38,7 @@ func InitApp() *App {
 	postService := services.InitPostDiscussionService(postRepo)
 
 	// --- Serveur Web (port 8081) ---
-	webFilsController := controllers.InitWebFilsController(filsService, catRepo, statRepo)
+	webFilsController := controllers.InitWebFilsController(filsService, postService, catRepo, statRepo)
 	webAuthController := controllers.InitWebAuthController(authService)
 	webMessageController := controllers.InitWebMessageController(postService)
 	webRouter := mux.NewRouter()
