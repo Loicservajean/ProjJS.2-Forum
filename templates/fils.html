@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Fil.Name}}</title>
-    <link rel="stylesheet" href="/static/css/forum.css">
+    <link rel="stylesheet" href="/static/css/fils.css">
 </head>
 <body>
 <header class="header">
@@ -40,7 +40,7 @@
 
             {{if eq .Fil.Archive 1}}
                 <span class="badge-archive">Archivée</span>
-            {{else if eq .Fil.Open 1}}
+            {{else if eq .Fil.Open 0}}
                 <span class="badge-open">Ouvert</span>
             {{else}}
                 <span class="badge">Fermé</span>
@@ -70,9 +70,16 @@
                             {{end}}
 
                             <p class="msg-content">{{.Contenu}}</p>
-
+                            
+                            <!-- action a changer dans les form pour augmenter le score-->
                             <div class="msg-score">
-                                󰔓 {{.NbLike}} · 󰔑 {{.NbDislike}}
+                                <!--<form action="" method="post"> -->
+                                    <button type="submit" class="btn-vote">󰔓 {{.NbLike}}</button>
+                                <!--</form>-->
+
+                                <!--<form action="" method="post">-->
+                                    <button type="submit" class="btn-vote">󰔑 {{.NbDislike}}</button>
+                                <!--</form>-->
                             </div>
                         </li>
                     {{end}}
