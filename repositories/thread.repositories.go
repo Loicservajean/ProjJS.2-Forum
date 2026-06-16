@@ -165,7 +165,7 @@ func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) error {
-	query := "UPDATE `Fil_de_discussion` SET `name`=?, `description`=?, `date_creation`=?, `open`=?, `archive`=? WHERE `Fil_de_discussion`.id=?;"
+	query := "UPDATE `Fil_de_discussion` SET `name`=?, `description`=?, `date_creation`=?, `open`=?, `archive`=? WHERE `Fil_de_discussion`.id_fil_de_discussion=?;"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
@@ -193,7 +193,7 @@ func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) err
 }
 
 func (r *FilsRepositories) Delete(id int) error {
-	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM `Fil_de_discussion` WHERE `Fil_de_discussion`.id=?;", id)
+	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM `Fil_de_discussion` WHERE `Fil_de_discussion`.id_fil_de_discussion=?;", id)
 	if sqlErr != nil {
 		return fmt.Errorf("Erreur suppression fil - Erreur : \n\t %s", sqlErr.Error())
 	}
