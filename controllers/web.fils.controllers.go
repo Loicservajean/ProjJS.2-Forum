@@ -3,6 +3,8 @@ package controllers
 import (
 	"html/template"
 	"net/http"
+	"rompelago/auth"
+	"rompelago/middleware"
 	"rompelago/models"
 	"rompelago/repositories"
 	"rompelago/services"
@@ -13,10 +15,11 @@ import (
 )
 
 type WebFilsControllers struct {
-	service   *services.FilDiscussionService
-	templates *template.Template
-	catRepo   *repositories.CategoryRepositories
-	statRepo  *repositories.StatusRepositories
+	service     *services.FilDiscussionService
+	postService *services.PostDiscussionService
+	templates   *template.Template
+	catRepo     *repositories.CategoryRepositories
+	statRepo    *repositories.StatusRepositories
 }
 
 type CreatePageData struct {
@@ -24,13 +27,20 @@ type CreatePageData struct {
 	Statuts    []models.StatusModel
 }
 
-func InitWebFilsController(service *services.FilDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
+type FilDetailPageData struct {
+	Fil       models.FilDiscussionFull
+	Messages  []models.PostModel
+	Connected bool
+}
+
+func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
 	tmpl := template.Must(template.ParseGlob("templates/*.html"))
 	return &WebFilsControllers{
-		service:   service,
-		templates: tmpl,
-		catRepo:   catRepo,
-		statRepo:  statRepo,
+		service:     service,
+		postService: postService,
+		templates:   tmpl,
+		catRepo:     catRepo,
+		statRepo:    statRepo,
 	}
 }
 
@@ -127,7 +137,24 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Fils introuvable : "+err.Error(), http.StatusNotFound)
 		return
 	}
-	if err := c.templates.ExecuteTemplate(w, "fils", fils); err != nil {
+
+	messages, err := c.postService.ReadByFilId(id)
+	if err != nil {
+		http.Error(w, "Erreur lors de la récupération des messages : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Permet d'afficher (ou non) le formulaire de réponse selon que l'utilisateur
+	// est connecté (cookie JWT valide lu par le WebAuthMiddleware).
+	_, connected := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+
+	data := FilDetailPageData{
+		Fil:       fils,
+		Messages:  messages,
+		Connected: connected,
+	}
+
+	if err := c.templates.ExecuteTemplate(w, "fils", data); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
 }

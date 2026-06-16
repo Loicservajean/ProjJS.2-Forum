@@ -79,13 +79,29 @@ func (c *WebAuthControllers) LoginAction(w http.ResponseWriter, r *http.Request)
 		Password: r.FormValue("password"),
 	}
 
-	if _, err := c.authService.Login(req); err != nil {
+	loginResp, err := c.authService.Login(req)
+	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		c.templates.ExecuteTemplate(w, "connection", map[string]string{
 			"Error": err.Error(),
 		})
 		return
 	}
+
+	// Le JWT était généré mais jamais transmis au navigateur : sans ce cookie,
+	// le WebAuthMiddleware ne trouve rien sur les pages suivantes et l'utilisateur
+	// apparaît déconnecté juste après s'être connecté.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    loginResp.AccessToken,
+		Path:     "/",
+		MaxAge:   9 * 60,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		// Secure devrait être à true en production (HTTPS) ; laissé à false ici
+		// pour fonctionner en dev local sur http://localhost.
+		Secure: false,
+	})
 
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }
