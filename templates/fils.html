@@ -1,0 +1,107 @@
+{{define "fils"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Fil.Name}}</title>
+    <link rel="stylesheet" href="/static/css/forum.css">
+</head>
+<body>
+<header class="header">
+    <div class="align-header">
+        <div class="brand">
+            <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+            <div>
+                <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+            </div>
+        </div>
+        <div class="auth-links">
+            <a class="btn-login" href="/connection">Connection</a>
+            <a class="btn-register" href="/inscription">Inscription</a>
+        </div>
+    </div>
+</header>
+<main>
+    <div class="box">
+        <h1>{{.Fil.Name}}</h1>
+        <p class="fil-description">{{.Fil.Description}}</p>
+
+        <div class="message">
+            {{if .Fil.CategorieName}}
+                <span class="badge">Catégorie : {{.Fil.CategorieName}}</span>
+            {{end}}
+
+            {{if .Fil.TagName}}
+                <span class="badge">Statut : {{.Fil.TagName}}</span>
+            {{end}}
+
+            <span class="badge">Créé le : {{.Fil.DateCreation}}</span>
+
+            {{if eq .Fil.Archive 1}}
+                <span class="badge-archive">Archivée</span>
+            {{else if eq .Fil.Open 1}}
+                <span class="badge-open">Ouvert</span>
+            {{else}}
+                <span class="badge">Fermé</span>
+            {{end}}
+        </div>
+
+        <section class="section-messages">
+            <h2>Messages ({{len .Messages}})</h2>
+
+            {{if .Messages}}
+                <ul class="msg-list">
+                    {{range .Messages}}
+                        <li class="msg-card">
+                            <div class="msg-meta">
+                                <span class="msg-author">
+                                    {{if .Creator.Name}}
+                                        {{.Creator.Name}}
+                                    {{else}}
+                                        Utilisateur non identifié
+                                    {{end}}
+                                </span>
+                                <span class="msg-date">{{.DateEnvoi}}</span>
+                            </div>
+
+                            {{if .Name}}
+                                <strong class="msg-title">{{.Name}}</strong>
+                            {{end}}
+
+                            <p class="msg-content">{{.Contenu}}</p>
+
+                            <div class="msg-score">
+                                󰔓 {{.NbLike}} · 󰔑 {{.NbDislike}}
+                            </div>
+                        </li>
+                    {{end}}
+                </ul>
+            {{else}}
+                <p class="empty">Aucun message pour le moment. Soyez le premier à répondre !</p>
+            {{end}}
+        </section>
+
+        {{if .Connected}}
+            <form class="reply-form" action="/fil/{{.Fil.Id}}/message" method="post">
+                <h2>Répondre à ce fil</h2>
+
+                <label for="name">Titre du message</label>
+                <input id="name" name="name" type="text" placeholder="Un court titre pour ta réponse" required>
+
+                <label for="contenu">Message</label>
+                <textarea id="contenu" name="contenu" placeholder="Écris ta réponse ici..." required></textarea>
+
+                <button type="submit">Envoyer</button>
+            </form>
+        {{else}}
+            <div class="login-prompt">
+                <p>Vous devez être connecté(e) pour répondre à ce fil. <a href="/connection">Se connecter</a></p>
+            </div>
+        {{end}}
+
+    </div>
+</main>
+</body>
+</html>
+{{end}}
