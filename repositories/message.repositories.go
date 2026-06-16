@@ -18,7 +18,7 @@ func InitPostRepositories(dbContext *sql.DB) *PostRepositories {
 // ReadPostsByFilId retourne tous les messages d'un fil de discussion.
 func (r *PostRepositories) ReadPostsByFilId(filId int) ([]models.PostModel, error) {
 	query := `
-		SELECT m.id_message, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
+		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
 		       u.id_utilisateur, u.pseudo
 		FROM Message m
 		LEFT JOIN Utilisateur u ON u.id_utilisateur = m.fk_utilisateur
@@ -35,7 +35,7 @@ func (r *PostRepositories) ReadPostsByFilId(filId int) ([]models.PostModel, erro
 	for result.Next() {
 		var post models.PostModel
 		scanErr := result.Scan(
-			&post.Id, &post.Contenu, &post.DateEnvoi,
+			&post.Id, &post.Name, &post.Contenu, &post.DateEnvoi,
 			&post.ScorePop, &post.NbLike, &post.NbDislike,
 			&post.Creator.Id, &post.Creator.Name,
 		)
@@ -51,13 +51,14 @@ func (r *PostRepositories) ReadPostsByFilId(filId int) ([]models.PostModel, erro
 // CreatePost insère un message dans un fil de discussion.
 func (r *PostRepositories) CreatePost(post models.PostModel) (int, error) {
 	query := `
-		INSERT INTO Message (fk_fil_de_discussion, fk_utilisateur, contenu, date_envoi, nb_like, nb_dislike, scorepop)
-		VALUES (?, ?, ?, ?, 0, 0, 0);
+		INSERT INTO Message (fk_fil_de_discussion, fk_utilisateur, contenu, name, date_envoi, nb_like, nb_dislike, scorepop)
+		VALUES (?, ?, ?, ?, ?, 0, 0, 0);
 	`
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		post.FilAssocié.Id,
 		post.Creator.Id,
 		post.Contenu,
+		post.Name,
 		post.DateEnvoi,
 	)
 	if sqlErr != nil {
