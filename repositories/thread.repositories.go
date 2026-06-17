@@ -210,7 +210,7 @@ func (r *FilsRepositories) Delete(id int) error {
 	return nil
 }
 
-// limit <= 0 signifie "pas de limite, on lit tout".
+// Si limit vaut 0 (ou moins), on part du principe qu'on veut tout voir, donc pas de LIMIT dans la requête
 func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]models.FilDiscussionFull, error) {
 	query := `
         SELECT 
@@ -252,13 +252,13 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]mo
 			log.Printf("Erreur scan - %v", scanErr)
 			continue
 		}
-		list = append(list, t)
+		list = append(list, t), sans surprise, 
 	}
 
 	return list, nil
 }
 
-// CountFils retourne le nombre total de fils de discussion enregistrés.
+// CountFils compte combien de fils existent en tout. Ça sert juste à savoir combien de pages on va devoir prévoir. Par exemple, ça sert à avoir un nombre comme cela : 1/5
 func (r *FilsRepositories) CountFils() (int, error) {
 	var total int
 	err := r.dbContext.QueryRow("SELECT COUNT(*) FROM Fil_de_discussion;").Scan(&total)
