@@ -13,7 +13,11 @@ type WebAuthControllers struct {
 }
 
 func InitWebAuthController(authService *services.AuthService) *WebAuthControllers {
-	tmpl := template.Must(template.ParseGlob("templates/*.html"))
+	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
+		"additionner": func(a, b int) int { return a + b },
+		"soustraire":  func(a, b int) int { return a - b },
+	}
+	tmpl := template.Must(template.New("").Funcs(fonctionsDisponiblesDansLesTemplates).ParseGlob("templates/*.html"))
 	return &WebAuthControllers{
 		authService: authService,
 		templates:   tmpl,

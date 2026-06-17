@@ -19,8 +19,12 @@ func (s *FilDiscussionService) ReadAll() ([]models.FilDiscussionModel, error) {
 	return s.FilsRepository.ReadAll()
 }
 
-func (s *FilDiscussionService) ReadAllFull() ([]models.FilDiscussionFull, error) {
-	return s.FilsRepository.ReadAllWithCategoryAndStatus()
+func (s *FilDiscussionService) ReadAllFull(limit, offset int) ([]models.FilDiscussionFull, error) {
+	return s.FilsRepository.ReadAllWithCategoryAndStatus(limit, offset)
+}
+
+func (s *FilDiscussionService) CountFils() (int, error) {
+	return s.FilsRepository.CountFils()
 }
 
 func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error) {

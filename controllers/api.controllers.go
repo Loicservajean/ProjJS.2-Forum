@@ -73,7 +73,8 @@ func (c *ApiAuthController) Register(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/fils
 func (c *ApiFilsController) ListFils(w http.ResponseWriter, r *http.Request) {
-	fils, err := c.filService.ReadAllFull()
+	// (0, 0) = on lit tous les fils sans pagination.
+	fils, err := c.filService.ReadAllFull(0, 0)
 	if err != nil {
 		helper.WriteError(w, http.StatusInternalServerError, "erreur récupération des fils")
 		return

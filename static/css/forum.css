@@ -167,46 +167,42 @@ header {
 	display: block;
 }
 
-.fil-card {
-  font-family: "Ubuntu", sans-serif;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 20px;
-  padding: 10px;
-  background-image: url(/static/assets/grass.png);
-  background-size: cover;
-  border-radius: 20px;
-  border-left: 6px solid #055160;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.fil-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0 22px #3667b1;
-}
-
-.title {
-  margin: 0;
-  font-weight: 700;
+.limit-form {
   display: flex;
   align-items: center;
-  text-decoration: none;
-  color: #333;
+  gap: 0.5rem;
+  margin: 1rem 0;
 }
 
-.Description {
-  margin: 0pxz;
-  font-weight: 400px;
+.limit-form select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(5, 81, 96, 0.3);
+  font-family: inherit;
+}
+
+.pagination {
+  margin-top: 1.5rem;
   display: flex;
-  align-items: start;
-  font-size: 16px;
-  color: #000000;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
 }
 
-small {
-  margin: 0;
-  font-size: 10px;
-  box-shadow: #000000;
-  line-height: 1.4;
+.page-link {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(5, 81, 96, 0.08);
+  color: #055160;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-link:hover {
+  background: rgba(5, 81, 96, 0.15);
+}
+
+.page-info {
+  font-weight: 600;
+  color: #333;
 }
