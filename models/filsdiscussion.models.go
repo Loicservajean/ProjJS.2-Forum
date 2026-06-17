@@ -10,6 +10,7 @@ type FilDiscussionModel struct {
 	TagId        int
 	Creator      Utilisateur
 	Archive      int
+	CreatorID    int
 }
 
 type FilDiscussionWithCategorie struct {
@@ -35,6 +36,7 @@ type FilDiscussionFull struct {
 	CategorieId          int
 	TagId                int
 	Creator              Utilisateur
+	CreatorID            int
 	Archive              int
 	CategorieName        string
 	CategorieDescription string

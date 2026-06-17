@@ -13,7 +13,6 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
 	)
 
-	// Middleware non bloquant : lit le cookie JWT et injecte les claims dans le contexte
 	r.Use(middleware.WebAuthMiddleware)
 
 	// Auth
@@ -27,6 +26,8 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 	r.Handle("/nouveau", middleware.RequireAuth(http.HandlerFunc(tc.CreateFil))).Methods("GET")
 	r.Handle("/nouveaufil", middleware.RequireAuth(http.HandlerFunc(tc.CreateAction))).Methods("POST")
 	r.HandleFunc("/fil/{id}", tc.DetailPage).Methods("GET")
+	r.Handle("/fil/{id}/update", middleware.RequireAuth(http.HandlerFunc(tc.UpdateFil))).Methods("GET")
+	r.Handle("/fil/{id}/update", middleware.RequireAuth(http.HandlerFunc(tc.UpdateAction))).Methods("POST")
 
 	// Messages (Normalement non accessible sans être connecté)
 	r.Handle("/fil/{id}/message", middleware.RequireAuth(http.HandlerFunc(mc.CreateMessageAction))).Methods("POST")
