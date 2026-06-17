@@ -28,13 +28,32 @@ type CreatePageData struct {
 }
 
 type FilDetailPageData struct {
-	Fil       models.FilDiscussionFull
-	Messages  []models.PostModel
-	Connected bool
+	Fil        models.FilDiscussionFull
+	Messages   []models.PostModel
+	Connected  bool
+	Page       int
+	Limit      int
+	TotalPages int
 }
 
+type FilListPageData struct {
+	Fils       []models.FilDiscussionFull
+	Page       int
+	Limit      int
+	TotalPages int
+}
+
+// limitesAutorisees liste les seules valeurs de "limit" qu'on accepte depuis l'URL.
+var limitesAutorisees = map[int]bool{10: true, 20: true, 30: true}
+
 func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
-	tmpl := template.Must(template.ParseGlob("templates/*.html"))
+	// additionner/soustraire sont utilisées dans les templates HTML pour calculer
+	// la page précédente/suivante, puisque les templates ne savent pas faire de calcul.
+	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
+		"additionner": func(a, b int) int { return a + b },
+		"soustraire":  func(a, b int) int { return a - b },
+	}
+	tmpl := template.Must(template.New("").Funcs(fonctionsDisponiblesDansLesTemplates).ParseGlob("templates/*.html"))
 	return &WebFilsControllers{
 		service:     service,
 		postService: postService,
@@ -44,13 +63,60 @@ func InitWebFilsController(service *services.FilDiscussionService, postService *
 	}
 }
 
+// limiteEtPageDepuisRequete lit et valide les paramètres "limit" et "page" de l'URL.
+// Réutilisée par ListPage et DetailPage pour éviter de dupliquer cette logique.
+func limiteEtPageDepuisRequete(r *http.Request) (limite int, page int) {
+	limite = 10
+	valeurLimite := r.URL.Query().Get("limit")
+	if valeurLimite == "tout" {
+		limite = 0
+	} else if limiteConvertie, err := strconv.Atoi(valeurLimite); err == nil && limitesAutorisees[limiteConvertie] {
+		limite = limiteConvertie
+	}
+
+	page = 1
+	if pageConvertie, err := strconv.Atoi(r.URL.Query().Get("page")); err == nil && pageConvertie > 0 {
+		page = pageConvertie
+	}
+	return limite, page
+}
+
+// calculerPagination calcule le décalage SQL et le nombre total de pages.
+// Réutilisée par ListPage (fils) et DetailPage (messages).
+func calculerPagination(limite, page, total int) (decalage int, totalPages int, pageCorrigee int) {
+	if limite <= 0 {
+		return 0, 1, page
+	}
+	totalPages = (total + limite - 1) / limite
+	if totalPages < 1 {
+		totalPages = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+	decalage = (page - 1) * limite
+	return decalage, totalPages, page
+}
+
 func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
-	fils, err := c.service.ReadAllFull()
+	limite, page := limiteEtPageDepuisRequete(r)
+
+	total, err := c.service.CountFils()
+	if err != nil {
+		http.Error(w, "Erreur comptage : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	decalage, totalPages, page := calculerPagination(limite, page, total)
+
+	fils, err := c.service.ReadAllFull(limite, decalage)
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des fils : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := c.templates.ExecuteTemplate(w, "fils.list", fils); err != nil {
+
+	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages}
+	if err := c.templates.ExecuteTemplate(w, "fils.list", donnees); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -138,7 +204,17 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	messages, err := c.postService.ReadByFilId(id)
+	limite, page := limiteEtPageDepuisRequete(r)
+
+	total, err := c.postService.CountByFilId(id)
+	if err != nil {
+		http.Error(w, "Erreur comptage des messages : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	decalage, totalPages, page := calculerPagination(limite, page, total)
+
+	messages, err := c.postService.ReadByFilId(id, limite, decalage)
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des messages : "+err.Error(), http.StatusInternalServerError)
 		return
@@ -149,9 +225,12 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 	_, connected := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
 
 	data := FilDetailPageData{
-		Fil:       fils,
-		Messages:  messages,
-		Connected: connected,
+		Fil:        fils,
+		Messages:   messages,
+		Connected:  connected,
+		Page:       page,
+		Limit:      limite,
+		TotalPages: totalPages,
 	}
 
 	if err := c.templates.ExecuteTemplate(w, "fils", data); err != nil {

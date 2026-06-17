@@ -15,11 +15,18 @@ func InitPostDiscussionService(repo *repositories.PostRepositories) *PostDiscuss
 	return &PostDiscussionService{PostRepository: repo}
 }
 
-func (s *PostDiscussionService) ReadByFilId(filId int) ([]models.PostModel, error) {
+func (s *PostDiscussionService) ReadByFilId(filId int, limit, offset int) ([]models.PostModel, error) {
 	if filId <= 0 {
 		return nil, fmt.Errorf("identifiant de fil invalide : %d", filId)
 	}
-	return s.PostRepository.ReadPostsByFilId(filId)
+	return s.PostRepository.ReadPostsByFilId(filId, limit, offset)
+}
+
+func (s *PostDiscussionService) CountByFilId(filId int) (int, error) {
+	if filId <= 0 {
+		return 0, fmt.Errorf("identifiant de fil invalide : %d", filId)
+	}
+	return s.PostRepository.CountMessagesByFilId(filId)
 }
 
 func (s *PostDiscussionService) Create(post models.PostModel) (int, error) {

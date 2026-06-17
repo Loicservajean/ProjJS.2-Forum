@@ -26,7 +26,6 @@
     <div id="volet">
       <p>test</p>
       <p>test test</p>
-    
       <a href="#volet" class="ouvrir">Ouvrir !</a>
           <a href="#volet_clos" class="fermer">fermer !</a>
     </div>
@@ -36,8 +35,17 @@
       <h1>Forum</h1>
       <p>Bienvenue sur le forum de Rompelago ! Ici, vous pouvez discuter de tout ce qui concerne notre projet, poser des questions, partager des idées et collaborer avec d'autres membres de la communauté. N'hésitez pas à participer et à contribuer à la croissance de notre forum !</p>
       <a href="/nouveau">+ Nouveau fil</a>
-      {{if .}}
-        {{range .}}
+      <form class="limit-form" method="get" action="/forum">
+        <label for="limit">Afficher :</label>
+        <select id="limit" name="limit" onchange="this.form.submit()">
+          <option value="10" {{if eq .Limit 10}}selected{{end}}>10</option>
+          <option value="20" {{if eq .Limit 20}}selected{{end}}>20</option>
+          <option value="30" {{if eq .Limit 30}}selected{{end}}>30</option>
+          <option value="tout" {{if eq .Limit 0}}selected{{end}}>Tout afficher</option>
+        </select>
+      </form>
+      {{if .Fils}}
+        {{range .Fils}}
         <div class="fil-card">
           <h2><a href="/fil/{{.Id}}">{{.Name}}</a></h2>
           <p>{{.Description}}</p>
@@ -50,6 +58,17 @@
         {{end}}
       {{else}}
         <p>Aucun fil de discussion pour le moment.</p>
+      {{end}}
+      {{if gt .Limit 0}}
+        <div class="pagination">
+          {{if gt .Page 1}}
+            <a class="page-link" href="/forum?limit={{.Limit}}&page={{soustraire .Page 1}}">« Précédent</a>
+          {{end}}
+          <span class="page-info">Page {{.Page}} / {{.TotalPages}}</span>
+          {{if lt .Page .TotalPages}}
+            <a class="page-link" href="/forum?limit={{.Limit}}&page={{additionner .Page 1}}">Suivant »</a>
+          {{end}}
+        </div>
       {{end}}
     </div>
   </main>

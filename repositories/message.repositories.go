@@ -15,17 +15,23 @@ func InitPostRepositories(dbContext *sql.DB) *PostRepositories {
 	return &PostRepositories{dbContext: dbContext}
 }
 
-// ReadPostsByFilId retourne tous les messages d'un fil de discussion.
-func (r *PostRepositories) ReadPostsByFilId(filId int) ([]models.PostModel, error) {
+// limit <= 0 signifie "pas de limite, on lit tout".
+func (r *PostRepositories) ReadPostsByFilId(filId int, limit, offset int) ([]models.PostModel, error) {
 	query := `
 		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
 		       u.id_utilisateur, u.pseudo
 		FROM Message m
 		LEFT JOIN Utilisateur u ON u.id_utilisateur = m.fk_utilisateur
 		WHERE m.fk_fil_de_discussion = ?
-		ORDER BY m.date_envoi ASC;
+		ORDER BY m.date_envoi ASC
 	`
-	result, err := r.dbContext.Query(query, filId)
+	args := []interface{}{filId}
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
+
+	result, err := r.dbContext.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("erreur lecture messages du fil %d - %v", filId, err)
 	}
@@ -46,6 +52,16 @@ func (r *PostRepositories) ReadPostsByFilId(filId int) ([]models.PostModel, erro
 		list = append(list, post)
 	}
 	return list, nil
+}
+
+// CountMessagesByFilId retourne le nombre total de messages associés à un fil de discussion.
+func (r *PostRepositories) CountMessagesByFilId(filId int) (int, error) {
+	var total int
+	err := r.dbContext.QueryRow("SELECT COUNT(*) FROM Message WHERE fk_fil_de_discussion = ?;", filId).Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("erreur comptage messages du fil %d - %v", filId, err)
+	}
+	return total, nil
 }
 
 // CreatePost insère un message dans un fil de discussion.

@@ -149,3 +149,12 @@ CREATE TABLE Message (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE LikeDislike (
+    fk_utilisateur INT NOT NULL,
+    fk_message INT NOT NULL,
+    type_vote VARCHAR(10) NOT NULL, 
+    PRIMARY KEY (fk_utilisateur, fk_message),
+    FOREIGN KEY (fk_utilisateur) REFERENCES Utilisateur(id_utilisateur),
+    FOREIGN KEY (fk_message) REFERENCES Message(id_message)
+) ENGINE=InnoDB;

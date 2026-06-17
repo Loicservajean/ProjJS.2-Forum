@@ -210,7 +210,8 @@ func (r *FilsRepositories) Delete(id int) error {
 	return nil
 }
 
-func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussionFull, error) {
+// limit <= 0 signifie "pas de limite, on lit tout".
+func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]models.FilDiscussionFull, error) {
 	query := `
         SELECT 
             t.id_fil_de_discussion, t.name, t.description, t.date_creation,
@@ -222,9 +223,16 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
 		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN Status s ON s.id_status = fs.fk_status
+		ORDER BY t.date_creation DESC
     `
 
-	result, err := r.dbContext.Query(query)
+	var args []interface{}
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
+
+	result, err := r.dbContext.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("Erreur lors de la requete - %v", err)
 	}
@@ -248,6 +256,16 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus() ([]models.FilDiscussio
 	}
 
 	return list, nil
+}
+
+// CountFils retourne le nombre total de fils de discussion enregistrés.
+func (r *FilsRepositories) CountFils() (int, error) {
+	var total int
+	err := r.dbContext.QueryRow("SELECT COUNT(*) FROM Fil_de_discussion;").Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("Erreur lors du comptage des fils - %v", err)
+	}
+	return total, nil
 }
 
 //Doc pour coalesce en dessous : Ceci est une fonction SQL pour Ignorer un Paramètre qui est NULL dans la Base de données (D'après ce que j'ai compris de la doc)

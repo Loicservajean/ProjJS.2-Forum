@@ -268,3 +268,43 @@ header {
 .btn-vote:hover {
     color: #055160;
 }
+
+.limit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.limit-form select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(5, 81, 96, 0.3);
+  font-family: inherit;
+}
+
+.pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-link {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(5, 81, 96, 0.08);
+  color: #055160;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-link:hover {
+  background: rgba(5, 81, 96, 0.15);
+}
+
+.page-info {
+  font-weight: 600;
+  color: #333;
+}
