@@ -9,28 +9,30 @@
 </head>
 <body>
 <header class="header">
-    <div class="align-header">
-        <div class="brand">
-            <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
-            <div>
-                <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
-            </div>
-        </div>
-        <div class="auth-links">
-            <a class="btn-login" href="/connection">Connection</a>
-            <a class="btn-register" href="/inscription">Inscription</a>
-        </div>
+<div class="align-header">
+    <a class="brand" href="/forum">
+    <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+    <div>
+        <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
     </div>
+    </a>
+    <div class="auth-links">
+    <a class="btn-login" href="/connection">connection</a>
+    <a class="btn-register" href="/inscription">Inscription</a>
+    </div>
+</div>
 </header>
 <main>
     <div class="box">
         <h1>{{.Fil.Name}}</h1>
 
+        <p class="fil-description">{{.Fil.Description}}</p>
+
         {{if and .Connected (eq .ConnectedUser (printf "%d" .Fil.Creator.Id))}}
             <!--class=""  manquant juste en dessous je te laisse faire Loic pour le CSS tu choisis ce que tu veux -->
-            <a href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
+            <a class="fil" href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
         {{end}}
-        <p class="fil-description">{{.Fil.Description}}</p>
+        
 
         <div class="message">
             {{if .Fil.CategorieName}}

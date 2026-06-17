@@ -6,16 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rompelago</title>
   <link rel="stylesheet" href="/static/css/forum.css">
+  <!--google font-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+  <!--google font-->
 </head>
 <body>
   <header class="header">
     <div class="align-header">
-      <div class="brand">
+      <a class="brand" href="/forum">
         <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
         <div>
           <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
         </div>
-      </div>
+      </a>
       <div class="auth-links">
         <a class="btn-login" href="/connection">connection</a>
         <a class="btn-register" href="/inscription">Inscription</a>
@@ -35,12 +40,12 @@
     <div class="box">
       <h1>Forum</h1>
       <p>Bienvenue sur le forum de Rompelago ! Ici, vous pouvez discuter de tout ce qui concerne notre projet, poser des questions, partager des idées et collaborer avec d'autres membres de la communauté. N'hésitez pas à participer et à contribuer à la croissance de notre forum !</p>
-      <a href="/nouveau">+ Nouveau fil</a>
+      <a class="nouveau" href="/nouveau">+ Nouveau fil</a>
       {{if .}}
         {{range .}}
         <div class="fil-card">
-          <h2><a href="/fil/{{.Id}}">{{.Name}}</a></h2>
-          <p>{{.Description}}</p>
+          <h2><a class="title" href="/fil/{{.Id}}">{{.Name}}</a></h2>
+          <p class="Description">{{.Description}}</p>
           <small>
             Catégorie : {{.CategorieName}} |
             Statut : {{.TagName}} |
