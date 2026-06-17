@@ -206,3 +206,59 @@ header {
   font-weight: 600;
   color: #333;
 }
+
+.nouveau {
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 700;
+  margin-top: 2rem;
+  padding: 8px 16px;
+  color: #ffffffcc;
+  border-radius: 20px;
+  background-color:#055160;
+  font-style: bold;
+  text-decoration: none;
+  
+}
+
+.fil-card {
+  font-family: "Ubuntu", sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 20px;
+  padding: 10px;
+  background-image: url(/static/assets/grass.png);
+  background-size: cover;
+  border-radius: 20px;
+  border-left: 6px solid #055160;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.fil-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 22px #3667b1;
+}
+
+.title {
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+}
+
+.Description {
+  margin: 0pxz;
+  font-weight: 400px;
+  display: flex;
+  align-items: start;
+  font-size: 16px;
+  color: #000000;
+}
+
+small {
+  margin: 0;
+  font-size: 10px;
+  box-shadow: #000000;
+  line-height: 1.4;

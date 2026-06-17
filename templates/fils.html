@@ -29,7 +29,6 @@
         <p class="fil-description">{{.Fil.Description}}</p>
 
         {{if and .Connected (eq .ConnectedUser (printf "%d" .Fil.Creator.Id))}}
-            <!--class=""  manquant juste en dessous je te laisse faire Loic pour le CSS tu choisis ce que tu veux -->
             <a class="fil" href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
         {{end}}
         
