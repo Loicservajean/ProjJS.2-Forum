@@ -55,6 +55,16 @@
         <section class="section-messages">
             <h2>Messages ({{len .Messages}})</h2>
 
+            <form class="limit-form" method="get" action="/fil/{{.Fil.Id}}">
+                <label for="limit">Afficher :</label>
+                <select id="limit" name="limit" onchange="this.form.submit()">
+                    <option value="10" {{if eq .Limit 10}}selected{{end}}>10</option>
+                    <option value="20" {{if eq .Limit 20}}selected{{end}}>20</option>
+                    <option value="30" {{if eq .Limit 30}}selected{{end}}>30</option>
+                    <option value="tout" {{if eq .Limit 0}}selected{{end}}>Tout afficher</option>
+                </select>
+            </form>
+
             {{if .Messages}}
                 <ul class="msg-list">
                     {{range .Messages}}
@@ -75,7 +85,7 @@
                             {{end}}
 
                             <p class="msg-content">{{.Contenu}}</p>
-                            
+
                             <!-- action a changer dans les form pour augmenter le score-->
                             <div class="msg-score">
                                 <form action="/fil/{{$.Fil.Id}}/message" method="post"> 
@@ -95,6 +105,18 @@
                 </ul>
             {{else}}
                 <p class="empty">Aucun message pour le moment. Soyez le premier à répondre !</p>
+            {{end}}
+
+            {{if gt .Limit 0}}
+                <div class="pagination">
+                    {{if gt .Page 1}}
+                        <a class="page-link" href="/fil/{{.Fil.Id}}?limit={{.Limit}}&page={{soustraire .Page 1}}">« Précédent</a>
+                    {{end}}
+                    <span class="page-info">Page {{.Page}} / {{.TotalPages}}</span>
+                    {{if lt .Page .TotalPages}}
+                        <a class="page-link" href="/fil/{{.Fil.Id}}?limit={{.Limit}}&page={{additionner .Page 1}}">Suivant »</a>
+                    {{end}}
+                </div>
             {{end}}
         </section>
 
