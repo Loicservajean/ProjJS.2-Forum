@@ -128,7 +128,7 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (int, error) {
-	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `open`, `archive`) VALUES (?,?,?,?,?);"
+	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `open`, `archive`, `fk_utilisateur`) VALUES (?,?,?,?,?,?);"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
@@ -136,6 +136,7 @@ func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (in
 		fildediscussion.DateCreation,
 		fildediscussion.Open,
 		fildediscussion.Archive,
+		fildediscussion.CreatorID,
 	)
 	if sqlErr != nil {
 		return -1, fmt.Errorf(" Erreur ajout Fil - Erreur : \n\t %s", sqlErr.Error())
@@ -217,7 +218,8 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]mo
             t.id_fil_de_discussion, t.name, t.description, t.date_creation,
             t.open, t.archive,
             COALESCE(c.name, ''), COALESCE(c.Description, ''),
-            COALESCE(s.name, ''), COALESCE(s.Description, '')
+            COALESCE(s.name, ''), COALESCE(s.Description, ''),
+            COALESCE(t.fk_utilisateur, 0)
         FROM Fil_de_discussion t
         LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
@@ -247,6 +249,7 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]mo
 			&t.Open, &t.Archive,
 			&t.CategorieName, &t.CategorieDescription,
 			&t.TagName, &t.TagDescription,
+			&t.Creator.Id,
 		)
 		if scanErr != nil {
 			log.Printf("Erreur scan - %v", scanErr)
@@ -276,7 +279,8 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
 			t.open, t.archive,
 			COALESCE(c.name, ''), COALESCE(c.Description, ''),
-			COALESCE(s.name, ''), COALESCE(s.Description, '')
+			COALESCE(s.name, ''), COALESCE(s.Description, ''),
+			COALESCE(t.fk_utilisateur, 0)
 		FROM Fil_de_discussion t
 		LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
@@ -291,6 +295,7 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 		&t.Open, &t.Archive,
 		&t.CategorieName, &t.CategorieDescription,
 		&t.TagName, &t.TagDescription,
+		&t.Creator.Id,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -299,4 +304,34 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 		return models.FilDiscussionFull{}, fmt.Errorf("erreur lors de la requête - %v", err)
 	}
 	return t, nil
+}
+
+func (r *FilsRepositories) UpdateFull(fildediscussion models.FilDiscussionModel) error {
+	query := `
+		UPDATE Fil_de_discussion
+		SET description = ?, open = ?, archive = ?
+		WHERE id_fil_de_discussion = ?;
+	`
+
+	sqlResult, sqlErr := r.dbContext.Exec(query,
+		fildediscussion.Description,
+		fildediscussion.Open,
+		fildediscussion.Archive,
+		fildediscussion.Id,
+	)
+
+	if sqlErr != nil {
+		return fmt.Errorf("erreur modification fil - %s", sqlErr.Error())
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("erreur récupération lignes modifiées : %w", err)
+	}
+
+	if rowsAffected <= 0 {
+		return fmt.Errorf("aucune ligne modifiée")
+	}
+
+	return nil
 }

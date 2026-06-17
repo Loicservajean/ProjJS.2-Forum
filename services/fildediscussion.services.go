@@ -31,7 +31,6 @@ func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error
 	if fils.Name == "" || fils.Description == "" {
 		return -1, fmt.Errorf("titre et description obligatoires")
 	}
-	// Ensure DateCreation is set to a full datetime string before inserting
 	dateNow := time.Now().Format("2006-01-02 15:04:05")
 	return s.FilsRepository.Create(models.FilDiscussionModel{
 		Id:           fils.Id,
@@ -39,7 +38,7 @@ func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error
 		Description:  fils.Description,
 		DateCreation: dateNow,
 		Open:         fils.Open,
-		Creator:      fils.Creator,
+		CreatorID:    fils.CreatorID,
 	})
 }
 
@@ -55,4 +54,22 @@ func (s *FilDiscussionService) ReadByIdWithDetails(id int) (models.FilDiscussion
 		return models.FilDiscussionFull{}, fmt.Errorf("identifiant invalide : %d", id)
 	}
 	return s.FilsRepository.ReadByIdWithCategoryAndStatus(id)
+}
+
+func (s *FilDiscussionService) UpdateFull(id int, fils models.FilDiscussionFull) error {
+	if id <= 0 {
+		return fmt.Errorf("identifiant invalide : %d", id)
+	}
+	if fils.Description == "" {
+		return fmt.Errorf("description obligatoire")
+	}
+	return s.FilsRepository.UpdateFull(models.FilDiscussionModel{
+		Id:          id,
+		Name:        fils.Name,
+		Description: fils.Description,
+		DateCreation: fils.DateCreation,
+		Open:        fils.Open,
+		Archive:     fils.Archive,
+		CreatorID:   fils.CreatorID,
+	})
 }

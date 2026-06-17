@@ -34,6 +34,13 @@ type FilDetailPageData struct {
 	Page       int
 	Limit      int
 	TotalPages int
+	ConnectedUser string
+}
+
+type UpdateFilPageData struct {
+	Fil        models.FilDiscussionFull
+	Categories []models.CategoriesDiscussion
+	Statuts    []models.StatusModel
 }
 
 type FilListPageData struct {
@@ -147,10 +154,19 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		dateCreation = time.Now().Format("2006-01-02")
 	}
 
+	//Je récupère l'utilisateur
+	creatorID := 0
+	if claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims); ok {
+		if id, err := strconv.Atoi(claims.UserID); err == nil {
+			creatorID = id
+		}
+	}
+
 	fils := models.FilDiscussionFull{
 		Name:         r.FormValue("titre"),
 		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
+		CreatorID:    creatorID,
 	}
 
 	if _, err := c.service.Create(fils); err != nil {
@@ -218,9 +234,11 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Permet d'afficher (ou non) le formulaire de réponse selon que l'utilisateur
-	// est connecté (cookie JWT valide lu par le WebAuthMiddleware).
-	_, connected := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	userID := ""
+	claims, connected := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if connected {
+		userID = claims.UserID
+	}
 
 	data := FilDetailPageData{
 		Fil:        fils,
@@ -229,9 +247,67 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 		Page:       page,
 		Limit:      limite,
 		TotalPages: totalPages,
+		ConnectedUser: userID,
 	}
 
 	if err := c.templates.ExecuteTemplate(w, "fils", data); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (c *WebFilsControllers) UpdateFil(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Identifiant invalide", http.StatusBadRequest)
+		return
+	}
+	fil, err := c.service.ReadByIdWithDetails(id)
+	if err != nil {
+		http.Error(w, "Fils introuvable : "+err.Error(), http.StatusNotFound)
+		return
+	}
+	categories, err := c.catRepo.ReadAll()
+	if err != nil {
+		http.Error(w, "Erreur chargement catégories : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	statuts, err := c.statRepo.ReadAll()
+	if err != nil {
+		http.Error(w, "Erreur chargement statuts : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	data := UpdateFilPageData{Fil: fil, Categories: categories, Statuts: statuts}
+	if err := c.templates.ExecuteTemplate(w, "updatefil", data); err != nil {
+		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (c *WebFilsControllers) UpdateAction(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Identifiant invalide", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formulaire invalide", http.StatusBadRequest)
+		return
+	}
+
+	dateCreation := r.FormValue("date_creation")
+	if dateCreation == "" {
+		dateCreation = time.Now().Format("2006-01-02")
+	}
+
+	fils := models.FilDiscussionFull{
+		Description:  r.FormValue("description"),
+		DateCreation: dateCreation,
+	}
+
+	if err := c.service.UpdateFull(id, fils); err != nil {
+		http.Error(w, "Erreur lors de la mise à jour : "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/forum", http.StatusSeeOther)
 }

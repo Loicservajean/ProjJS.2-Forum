@@ -25,6 +25,11 @@
 <main>
     <div class="box">
         <h1>{{.Fil.Name}}</h1>
+
+        {{if and .Connected (eq .ConnectedUser (printf "%d" .Fil.Creator.Id))}}
+            <!--class=""  manquant juste en dessous je te laisse faire Loic pour le CSS tu choisis ce que tu veux -->
+            <a href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
+        {{end}}
         <p class="fil-description">{{.Fil.Description}}</p>
 
         <div class="message">
@@ -83,13 +88,17 @@
 
                             <!-- action a changer dans les form pour augmenter le score-->
                             <div class="msg-score">
-                                <!--<form action="" method="post"> -->
+                                <form action="/fil/{{$.Fil.Id}}/message" method="post"> 
+                                    <input type="hidden" name="messageId" value="{{.Id}}">
+                                    <input type="hidden" name="action" value="like">
                                     <button type="submit" class="btn-vote">󰔓 {{.NbLike}}</button>
-                                <!--</form>-->
+                                </form>
 
-                                <!--<form action="" method="post">-->
+                                <form action="/fil/{{$.Fil.Id}}/message" method="post">
+                                    <input type="hidden" name="messageId" value="{{.Id}}">
+                                    <input type="hidden" name="action" value="dislike">
                                     <button type="submit" class="btn-vote">󰔑 {{.NbDislike}}</button>
-                                <!--</form>-->
+                                </form>
                             </div>
                         </li>
                     {{end}}

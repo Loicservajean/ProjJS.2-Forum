@@ -12,7 +12,8 @@ CREATE TABLE Fil_de_discussion (
     description          TEXT,
     date_creation		 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     open                 BOOLEAN,
-    archive               BOOLEAN
+    archive               BOOLEAN,
+    fk_utilisateur       INT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE Utilisateur (
@@ -24,7 +25,7 @@ CREATE TABLE Utilisateur (
     ban            BOOLEAN      NOT NULL DEFAULT FALSE,
     status         ENUM('user', 'admin') NOT NULL DEFAULT 'user',
 # explication de ENUM: https://dev.mysql.com/doc/refman/8.4/en/enum.html
-# Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C’est très pratique pour des champs comme le statut d’une commande, le type de compte ou la catégorie d’un produit.
+# Le type ENUM permet de stocker une valeur unique choisie parmi une liste prédéfinie. C'est très pratique pour des champs comme le statut d'une commande, le type de compte ou la catégorie d'un produit.
     
     CONSTRAINT fk_utilisateur_fil_de_discussion
         FOREIGN KEY (fk_fil_de_discussion)
@@ -32,6 +33,13 @@ CREATE TABLE Utilisateur (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
+ALTER TABLE Fil_de_discussion
+    ADD CONSTRAINT fk_fil_createur
+        FOREIGN KEY (fk_utilisateur)
+        REFERENCES Utilisateur(id_utilisateur)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE;
 
 CREATE TABLE Mot_de_passe (
     id_mot_de_passe INT          AUTO_INCREMENT PRIMARY KEY,
