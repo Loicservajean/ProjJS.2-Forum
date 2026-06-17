@@ -15,7 +15,7 @@ func InitPostRepositories(dbContext *sql.DB) *PostRepositories {
 	return &PostRepositories{dbContext: dbContext}
 }
 
-// limit <= 0 signifie "pas de limite, on lit tout".
+// limit à 0 (ou moins) veut dire qu'on ne filtre rien du tout.
 func (r *PostRepositories) ReadPostsByFilId(filId int, limit, offset int) ([]models.PostModel, error) {
 	query := `
 		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
@@ -54,7 +54,7 @@ func (r *PostRepositories) ReadPostsByFilId(filId int, limit, offset int) ([]mod
 	return list, nil
 }
 
-// CountMessagesByFilId retourne le nombre total de messages associés à un fil de discussion.
+// CountMessagesByFilId va juste compter combien de messages traînent dans un fil donné.
 func (r *PostRepositories) CountMessagesByFilId(filId int) (int, error) {
 	var total int
 	err := r.dbContext.QueryRow("SELECT COUNT(*) FROM Message WHERE fk_fil_de_discussion = ?;", filId).Scan(&total)
