@@ -255,7 +255,7 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]mo
 			log.Printf("Erreur scan - %v", scanErr)
 			continue
 		}
-		list = append(list, t), sans surprise, 
+		list = append(list, t)
 	}
 
 	return list, nil
