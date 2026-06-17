@@ -5,17 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Fil.Name}}</title>
-    <link rel="stylesheet" href="/static/css/fils.css">
+    <link rel="stylesheet" href="/static/css/update.css">
 </head>
 <body>
 <header class="header">
     <div class="align-header">
-        <div class="brand">
+        <a class="brand" href="/forum">
             <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
             <div>
                 <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
             </div>
-        </div>
+        </a>
         <div class="auth-links">
             <a class="btn-login" href="/connection">Connection</a>
             <a class="btn-register" href="/inscription">Inscription</a>
@@ -23,31 +23,35 @@
     </div>
 </header>
 <main>
-    <form action="/fil/update{{$.Fil.Id}}" method="post">
-        <label for="titre">Titre : {{.Fil.Name}}</label>
+    <section class="box">
+        <h1>Modifier le fil</h1>
+        <form class="update-form" action="/fil/{{$.Fil.Id}}/update" method="post">
+            <label for="titre">Titre</label>
+            <input id="titre" type="text" value="{{.Fil.Name}}" disabled>
 
-        <label for="description">Description</label>
-        <textarea id="description" name="description" rows="6" placeholder="{{.Fil.Description}}" required>{{.Fil.Description}}</textarea>
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="6" required>{{.Fil.Description}}</textarea>
 
-        <label for="categorie_id">Catégorie</label>
-        <select id="categorie_id" name="categorie_id">
-          {{range .Categories}}
-            <option value="{{.Id}}">{{.Name}}</option>
-          {{end}}
-        </select>
+            <label for="categorie_id">Catégorie</label>
+            <select id="categorie_id" name="categorie_id">
+              {{range .Categories}}
+                <option value="{{.Id}}">{{.Name}}</option>
+              {{end}}
+            </select>
 
-        <label for="status_id">Statut</label>
-        <select id="status_id" name="status_id">
-          {{range .Status}}
-            <option value="{{.Id}}">{{.Name}}</option>
-          {{end}}
-        </select>
+            <label for="status_id">Statut</label>
+            <select id="status_id" name="status_id">
+              {{range .Statuts}}
+                <option value="{{.Id}}">{{.Nom}}</option>
+              {{end}}
+            </select>
 
-        <div class="form-actions">
-          <button type="submit" class="btn-register">Publier la nouvelle version</button>
-          <a href="/forum" class="cancel-link">Annuler</a>
-        </div>
-    </form>
+            <div class="form-actions">
+              <button type="submit" class="btn-register">Publier la nouvelle version</button>
+              <a href="/forum" class="cancel-link">Annuler</a>
+            </div>
+        </form>
+    </section>
 </main>
 </body>
 </html>
