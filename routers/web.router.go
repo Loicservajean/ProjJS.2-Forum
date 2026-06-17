@@ -13,7 +13,6 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
 	)
 
-	// Middleware non bloquant : lit le cookie JWT et injecte les claims dans le contexte
 	r.Use(middleware.WebAuthMiddleware)
 
 	// Auth

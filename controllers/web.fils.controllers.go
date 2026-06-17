@@ -90,7 +90,7 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		dateCreation = time.Now().Format("2006-01-02")
 	}
 
-	// Récupérer l'ID de l'utilisateur connecté depuis le JWT
+	//Je récupère l'utilisateur
 	creatorID := 0
 	if claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims); ok {
 		if id, err := strconv.Atoi(claims.UserID); err == nil {
@@ -99,10 +99,10 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 	}
 
 	fils := models.FilDiscussionFull{
-		Name:        r.FormValue("titre"),
-		Description: r.FormValue("description"),
+		Name:         r.FormValue("titre"),
+		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
-		CreatorID:   creatorID,
+		CreatorID:    creatorID,
 	}
 
 	if _, err := c.service.Create(fils); err != nil {

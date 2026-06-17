@@ -121,7 +121,7 @@ func (r *PostRepositories) GetLikeDislike(userId int, messageId int) (string, er
 	).Scan(&typeVote)
 
 	if err == sql.ErrNoRows {
-		return "", nil // pas encore voté
+		return "", nil
 	}
 	if err != nil {
 		return "", fmt.Errorf("erreur lecture vote - %v", err)

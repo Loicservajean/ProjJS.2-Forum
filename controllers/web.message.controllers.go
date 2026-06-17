@@ -22,14 +22,12 @@ func InitWebMessageController(postService *services.PostDiscussionService) *WebM
 // POST /fil/{id}/message
 // Ajoute un message dans un fil. Requiert d'être connecté avant.
 func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *http.Request) {
-	// Récupérer l'id du fil depuis l'URL de la page
 	filId, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil || filId <= 0 {
 		http.Error(w, "Identifiant de fil invalide", http.StatusBadRequest)
 		return
 	}
 
-	// Récupérer l'utilisateur depuis le token JWT qui est dans le middleware.
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
 	if !ok || claims == nil {
 		http.Redirect(w, r, "/connection", http.StatusSeeOther)
@@ -54,7 +52,6 @@ func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *ht
 		userId, _ := strconv.Atoi(claims.UserID) // claims déjà récupéré plus haut
 
 		if err := c.postService.LikeDislike(userId, messageId, action); err != nil {
-			// Vote ignoré silencieusement → on redirige quand même
 			http.Redirect(w, r, "/fil/"+mux.Vars(r)["id"], http.StatusSeeOther)
 			return
 		}
@@ -98,6 +95,5 @@ func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Rediriger vers la page du fil après soumission
 	http.Redirect(w, r, "/fil/"+mux.Vars(r)["id"], http.StatusSeeOther)
 }
