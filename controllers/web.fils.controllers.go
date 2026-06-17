@@ -43,12 +43,11 @@ type FilListPageData struct {
 	TotalPages int
 }
 
-// limitesAutorisees liste les seules valeurs de "limit" qu'on accepte depuis l'URL.
+// Voilà les seules valeurs de "limit" qu'on accepte depuis l'URL. Si quelqu'un utilise des valeurs bizarre, on l'ignore.
 var limitesAutorisees = map[int]bool{10: true, 20: true, 30: true}
 
 func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
-	// additionner/soustraire sont utilisées dans les templates HTML pour calculer
-	// la page précédente/suivante, puisque les templates ne savent pas faire de calcul.
+// Fonctions de calcul pour la page précédente et la suivante.
 	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
 		"additionner": func(a, b int) int { return a + b },
 		"soustraire":  func(a, b int) int { return a - b },
@@ -63,8 +62,8 @@ func InitWebFilsController(service *services.FilDiscussionService, postService *
 	}
 }
 
-// limiteEtPageDepuisRequete lit et valide les paramètres "limit" et "page" de l'URL.
-// Réutilisée par ListPage et DetailPage pour éviter de dupliquer cette logique.
+// limiteEtPageDepuisRequete va voir ce que la personne a demandé dans l'URL et vérifie que ça tient la route. 
+// La fonction est utilisée par ListPage et DetailPage, comme ça on ne répète pas deux fois le même code.
 func limiteEtPageDepuisRequete(r *http.Request) (limite int, page int) {
 	limite = 10
 	valeurLimite := r.URL.Query().Get("limit")
@@ -81,8 +80,7 @@ func limiteEtPageDepuisRequete(r *http.Request) (limite int, page int) {
 	return limite, page
 }
 
-// calculerPagination calcule le décalage SQL et le nombre total de pages.
-// Réutilisée par ListPage (fils) et DetailPage (messages).
+// cette fonction fait le calcul pour savoir où on en est : combien de pages au total, et combien de lignes il faut sauter en SQL pour tomber sur la bonne page.
 func calculerPagination(limite, page, total int) (decalage int, totalPages int, pageCorrigee int) {
 	if limite <= 0 {
 		return 0, 1, page
