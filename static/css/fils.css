@@ -157,10 +157,10 @@ header {
 }
 
 .msg-card {
-  background: #ffffffdd;
+  background-image: url(/static/assets/grass.png);
   padding: 1rem;
-  border-radius: 8px;
-  border-left: 4px solid #055160;
+  border-radius:20px;
+  border-left: 10px solid #055160;
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
@@ -307,4 +307,20 @@ header {
 .page-info {
   font-weight: 600;
   color: #333;
+}
+
+.fil {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  border-radius: 20px;
+  background-color: #055160;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.fil:hover {
+  filter: brightness(0.90);
+  box-shadow: 0 0 22px #3667b1;
 }
