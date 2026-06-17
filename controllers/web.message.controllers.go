@@ -36,6 +36,32 @@ func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *ht
 		return
 	}
 
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formulaire invalide", http.StatusBadRequest)
+		return
+	}
+
+	action := r.FormValue("action")
+
+	// --- Vote like/dislike ---
+	if action == "like" || action == "dislike" {
+		messageId, err := strconv.Atoi(r.FormValue("messageId"))
+		if err != nil || messageId <= 0 {
+			http.Error(w, "Identifiant de message invalide", http.StatusBadRequest)
+			return
+		}
+
+		userId, _ := strconv.Atoi(claims.UserID) // claims déjà récupéré plus haut
+
+		if err := c.postService.LikeDislike(userId, messageId, action); err != nil {
+			// Vote ignoré silencieusement → on redirige quand même
+			http.Redirect(w, r, "/fil/"+mux.Vars(r)["id"], http.StatusSeeOther)
+			return
+		}
+		http.Redirect(w, r, "/fil/"+mux.Vars(r)["id"], http.StatusSeeOther)
+		return
+	}
+
 	userId, err := strconv.Atoi(claims.UserID)
 	if err != nil || userId <= 0 {
 		http.Error(w, "Utilisateur invalide", http.StatusUnauthorized)

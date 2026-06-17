@@ -111,3 +111,57 @@ func (r *PostRepositories) DeletePost(id int) error {
 	}
 	return nil
 }
+
+// Récupère le vote existant d'un utilisateur sur un message
+func (r *PostRepositories) GetLikeDislike(userId int, messageId int) (string, error) {
+	var typeVote string
+	err := r.dbContext.QueryRow(
+		`SELECT type_vote FROM LikeDislike WHERE fk_utilisateur = ? AND fk_message = ?`,
+		userId, messageId,
+	).Scan(&typeVote)
+
+	if err == sql.ErrNoRows {
+		return "", nil // pas encore voté
+	}
+	if err != nil {
+		return "", fmt.Errorf("erreur lecture vote - %v", err)
+	}
+	return typeVote, nil
+}
+
+// Insère ou met à jour le vote
+func (r *PostRepositories) UpsertLikeDislike(userId int, messageId int, action string) error {
+	_, err := r.dbContext.Exec(
+		`INSERT INTO LikeDislike (fk_utilisateur, fk_message, type_vote) VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE type_vote = ?`,
+		userId, messageId, action, action,
+	)
+	return err
+}
+
+// UpdateLikeDislike incrémente le nb_like ou nb_dislike d'un message.
+func (r *PostRepositories) UpdateLikeDislike(messageId int, action string) error {
+	var query string
+	switch action {
+	case "like":
+		query = `UPDATE Message SET nb_like = nb_like + 1, scorepop = scorepop + 1 WHERE id_message = ?`
+	case "dislike":
+		query = `UPDATE Message SET nb_dislike = nb_dislike + 1, scorepop = scorepop - 1 WHERE id_message = ?`
+	case "cancel_like":
+		query = `UPDATE Message SET nb_like = nb_like - 1, scorepop = scorepop - 1 WHERE id_message = ?`
+	case "cancel_dislike":
+		query = `UPDATE Message SET nb_dislike = nb_dislike - 1, scorepop = scorepop + 1 WHERE id_message = ?`
+	default:
+		return fmt.Errorf("action invalide : %s", action)
+	}
+
+	result, err := r.dbContext.Exec(query, messageId)
+	if err != nil {
+		return fmt.Errorf("erreur mise à jour vote - %v", err)
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("aucun message trouvé avec l'id %d", messageId)
+	}
+	return nil
+}

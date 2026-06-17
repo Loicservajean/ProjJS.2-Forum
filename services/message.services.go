@@ -42,3 +42,40 @@ func (s *PostDiscussionService) Delete(id int) error {
 	}
 	return s.PostRepository.DeletePost(id)
 }
+
+func (s *PostDiscussionService) LikeDislike(userId int, messageId int, action string) error {
+	if messageId <= 0 || userId <= 0 {
+		return fmt.Errorf("identifiant invalide")
+	}
+	if action != "like" && action != "dislike" {
+		return fmt.Errorf("action invalide")
+	}
+
+	// Vérifier le vote existant
+	existingVote, err := s.PostRepository.GetLikeDislike(userId, messageId)
+	if err != nil {
+		return err
+	}
+
+	// Déjà voté pareil → on ignore
+	if existingVote == action {
+		return fmt.Errorf("vous avez déjà %s ce message", action)
+	}
+
+	// Annuler l'ancien vote opposé si besoin
+	if existingVote != "" {
+		if existingVote == "like" {
+			s.PostRepository.UpdateLikeDislike(messageId, "cancel_like")
+		} else {
+			s.PostRepository.UpdateLikeDislike(messageId, "cancel_dislike")
+		}
+	}
+
+	// Appliquer le nouveau vote
+	if err := s.PostRepository.UpdateLikeDislike(messageId, action); err != nil {
+		return err
+	}
+
+	// Sauvegarder en BDD
+	return s.PostRepository.UpsertLikeDislike(userId, messageId, action)
+}
