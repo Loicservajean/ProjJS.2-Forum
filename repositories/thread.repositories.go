@@ -214,12 +214,12 @@ func (r *FilsRepositories) Delete(id int) error {
 // Si limit vaut 0 (ou moins), on part du principe qu'on veut tout voir, donc pas de LIMIT dans la requête
 func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int, connectedUserID int) ([]models.FilDiscussionFull, error) {
 	query := `
-        SELECT 
-            t.id_fil_de_discussion, t.name, t.description, t.date_creation,
-            t.open, t.archive,
-            COALESCE(c.name, ''), COALESCE(c.Description, ''),
-            COALESCE(s.name, ''), COALESCE(s.Description, ''),
-            COALESCE(t.fk_utilisateur, 0)
+		SELECT 
+			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
+			t.open, t.archive,
+			COALESCE(c.id_type, 0), COALESCE(c.name, ''), COALESCE(c.Description, ''),
+			COALESCE(s.name, ''), COALESCE(s.Description, ''),
+			COALESCE(t.fk_utilisateur, 0)
         FROM Fil_de_discussion t
         LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
@@ -249,7 +249,7 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int, conne
 		scanErr := result.Scan(
 			&t.Id, &t.Name, &t.Description, &t.DateCreation,
 			&t.Open, &t.Archive,
-			&t.CategorieName, &t.CategorieDescription,
+			&t.CategorieId, &t.CategorieName, &t.CategorieDescription,
 			&t.TagName, &t.TagDescription,
 			&t.Creator.Id,
 		)
@@ -286,7 +286,7 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 		SELECT 
 			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
 			t.open, t.archive,
-			COALESCE(c.name, ''), COALESCE(c.Description, ''),
+			COALESCE(c.id_type, 0), COALESCE(c.name, ''), COALESCE(c.Description, ''),
 			COALESCE(s.name, ''), COALESCE(s.Description, ''),
 			COALESCE(t.fk_utilisateur, 0)
 		FROM Fil_de_discussion t
@@ -301,7 +301,7 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 	err := r.dbContext.QueryRow(query, id).Scan(
 		&t.Id, &t.Name, &t.Description, &t.DateCreation,
 		&t.Open, &t.Archive,
-		&t.CategorieName, &t.CategorieDescription,
+		&t.CategorieId, &t.CategorieName, &t.CategorieDescription,
 		&t.TagName, &t.TagDescription,
 		&t.Creator.Id,
 	)

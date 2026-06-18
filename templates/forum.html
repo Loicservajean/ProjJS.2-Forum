@@ -29,8 +29,16 @@
   </header>
   <div id="volet_clos">
     <div id="volet">
-      <p>test</p>
-      <p>test test</p>
+    <!-- Ajout de CSS ici -->
+      <form method="get" action="/forum">
+        <label for="categorie_id">Afficher selon la catégorie :</label>
+        <select id="categorie_id" name="categorie_id" onchange="this.form.submit()">
+          {{range .Categories}}
+            <option value="{{.Id}}" {{if eq $.Limit .Id}}selected{{end}}>{{.Name}}</option>
+          {{end}}
+          <option value="tout" {{if eq .Limit 0}}selected{{end}}>Tout afficher</option>
+        </select>
+      </form>
       <a href="#volet" class="ouvrir">Ouvrir !</a>
           <a href="#volet_clos" class="fermer">fermer !</a>
     </div>
