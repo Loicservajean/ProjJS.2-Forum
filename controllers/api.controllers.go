@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"rompelago/dto"
 	"rompelago/helper"
+	"rompelago/repositories"
 	"rompelago/services"
 )
 
@@ -13,14 +14,15 @@ type ApiAuthController struct {
 
 type ApiFilsController struct {
 	filService *services.FilDiscussionService
+	catRepo    *repositories.CategoryRepositories
 }
 
 func InitApiAuthController(authService *services.AuthService) *ApiAuthController {
 	return &ApiAuthController{authService: authService}
 }
 
-func InitApiFilsController(filService *services.FilDiscussionService) *ApiFilsController {
-	return &ApiFilsController{filService: filService}
+func InitApiFilsController(filService *services.FilDiscussionService, catRepo *repositories.CategoryRepositories) *ApiFilsController {
+	return &ApiFilsController{filService: filService, catRepo: catRepo}
 }
 
 // POST /api/auth/login
@@ -73,11 +75,19 @@ func (c *ApiAuthController) Register(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/fils
 func (c *ApiFilsController) ListFils(w http.ResponseWriter, r *http.Request) {
+	categories, err := c.catRepo.ReadAll()
+	if err != nil {
+		helper.WriteError(w, http.StatusInternalServerError, "erreur récupération des catégories")
+		return
+	}
 	// (0, 0, 0) = on lit tous les fils sans pagination.
 	fils, err := c.filService.ReadAllFull(0, 0, 0)
 	if err != nil {
 		helper.WriteError(w, http.StatusInternalServerError, "erreur récupération des fils")
 		return
 	}
-	helper.WriteJSON(w, http.StatusOK, fils)
+	helper.WriteJSON(w, http.StatusOK, dto.FilsResponseDto{
+		Categories: categories,
+		Fils:       fils,
+	})
 }

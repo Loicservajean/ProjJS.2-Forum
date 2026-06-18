@@ -46,7 +46,7 @@ func InitApp() *App {
 
 	// --- Serveur API (port 8080) ---
 	apiAuthController := controllers.InitApiAuthController(authService)
-	apiFilsController := controllers.InitApiFilsController(filsService)
+	apiFilsController := controllers.InitApiFilsController(filsService, catRepo)
 	apiRouter := mux.NewRouter()
 	routers.RegisterApiRoutes(apiRouter, apiAuthController, apiFilsController)
 
