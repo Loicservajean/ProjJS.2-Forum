@@ -15,7 +15,7 @@ func InitPostRepositories(dbContext *sql.DB) *PostRepositories {
 	return &PostRepositories{dbContext: dbContext}
 }
 
-// limit à 0 (ou moins) veut dire qu'on ne filtre rien du tout.
+// limit à 0 veut dire qu'on ne filtre rien du tout.
 func (r *PostRepositories) ReadPostsByFilId(filId int, limit, offset int) ([]models.PostModel, error) {
 	query := `
 		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
@@ -112,8 +112,13 @@ func (r *PostRepositories) ReadPostById(id int) (models.PostModel, error) {
 	return post, nil
 }
 
-// DeletePost supprime un message par son id.
+// DeletePost supprime un message par son id (et ses votes associés).
 func (r *PostRepositories) DeletePost(id int) error {
+	_, sqlErr := r.dbContext.Exec("DELETE FROM LikeDislike WHERE fk_message = ?;", id)
+	if sqlErr != nil {
+		return fmt.Errorf("erreur suppression votes du message - %s", sqlErr.Error())
+	}
+
 	sqlResult, sqlErr := r.dbContext.Exec("DELETE FROM Message WHERE id_message = ?;", id)
 	if sqlErr != nil {
 		return fmt.Errorf("erreur suppression message - %s", sqlErr.Error())
@@ -155,7 +160,40 @@ func (r *PostRepositories) UpsertLikeDislike(userId int, messageId int, action s
 	return err
 }
 
-// UpdateLikeDislike incrémente le nb_like ou nb_dislike d'un message.
+// UpdatePost met à jour le titre et le contenu d'un message.
+func (r *PostRepositories) UpdatePost(id int, name, contenu string) error {
+	query := `UPDATE Message SET name = ?, contenu = ? WHERE id_message = ?;`
+	_, sqlErr := r.dbContext.Exec(query, name, contenu, id)
+	if sqlErr != nil {
+		return fmt.Errorf("erreur modification message - %s", sqlErr.Error())
+	}
+	return nil
+}
+
+// ReadPostByIdFull retourne un message par son id avec le nom du fil associé.
+func (r *PostRepositories) ReadPostByIdFull(id int) (models.PostModel, error) {
+	var post models.PostModel
+	query := `
+		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
+		       u.id_utilisateur, u.pseudo, m.fk_fil_de_discussion
+		FROM Message m
+		LEFT JOIN Utilisateur u ON u.id_utilisateur = m.fk_utilisateur
+		WHERE m.id_message = ?;
+	`
+	err := r.dbContext.QueryRow(query, id).Scan(
+		&post.Id, &post.Name, &post.Contenu, &post.DateEnvoi,
+		&post.ScorePop, &post.NbLike, &post.NbDislike,
+		&post.Creator.Id, &post.Creator.Name,
+		&post.FilAssocié.Id,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.PostModel{}, fmt.Errorf("message introuvable")
+		}
+		return models.PostModel{}, fmt.Errorf("erreur lecture message %d - %v", id, err)
+	}
+	return post, nil
+}
 func (r *PostRepositories) UpdateLikeDislike(messageId int, action string) error {
 	var query string
 	switch action {

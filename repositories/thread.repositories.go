@@ -212,7 +212,7 @@ func (r *FilsRepositories) Delete(id int) error {
 }
 
 // Si limit vaut 0 (ou moins), on part du principe qu'on veut tout voir, donc pas de LIMIT dans la requête
-func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]models.FilDiscussionFull, error) {
+func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int, connectedUserID int) ([]models.FilDiscussionFull, error) {
 	query := `
         SELECT 
             t.id_fil_de_discussion, t.name, t.description, t.date_creation,
@@ -225,10 +225,12 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]mo
 		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
 		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
 		LEFT JOIN Status s ON s.id_status = fs.fk_status
+		WHERE s.name != 'Archivé' OR s.name IS NULL OR t.fk_utilisateur = ?
 		ORDER BY t.date_creation DESC
     `
 
 	var args []interface{}
+	args = append(args, connectedUserID)
 	if limit > 0 {
 		query += " LIMIT ? OFFSET ?"
 		args = append(args, limit, offset)
@@ -262,9 +264,15 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int) ([]mo
 }
 
 // CountFils compte combien de fils existent en tout. Ça sert juste à savoir combien de pages on va devoir prévoir. Par exemple, ça sert à avoir un nombre comme cela : 1/5
-func (r *FilsRepositories) CountFils() (int, error) {
+func (r *FilsRepositories) CountFils(connectedUserID int) (int, error) {
 	var total int
-	err := r.dbContext.QueryRow("SELECT COUNT(*) FROM Fil_de_discussion;").Scan(&total)
+	query := `
+		SELECT COUNT(*) FROM Fil_de_discussion t
+		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
+		LEFT JOIN Status s ON s.id_status = fs.fk_status
+		WHERE s.name != 'Archivé' OR s.name IS NULL OR t.fk_utilisateur = ?;
+	`
+	err := r.dbContext.QueryRow(query, connectedUserID).Scan(&total)
 	if err != nil {
 		return 0, fmt.Errorf("Erreur lors du comptage des fils - %v", err)
 	}
@@ -313,7 +321,7 @@ func (r *FilsRepositories) UpdateFull(fildediscussion models.FilDiscussionModel)
 		WHERE id_fil_de_discussion = ?;
 	`
 
-	sqlResult, sqlErr := r.dbContext.Exec(query,
+	_, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Description,
 		fildediscussion.Open,
 		fildediscussion.Archive,
@@ -324,14 +332,35 @@ func (r *FilsRepositories) UpdateFull(fildediscussion models.FilDiscussionModel)
 		return fmt.Errorf("erreur modification fil - %s", sqlErr.Error())
 	}
 
-	rowsAffected, err := sqlResult.RowsAffected()
+	return nil
+}
+
+// SetCategory remplace la catégorie d'un fil
+func (r *FilsRepositories) SetCategory(filID, categorieID int) error {
+	_, err := r.dbContext.Exec("DELETE FROM Fil_Type WHERE fk_fil = ?;", filID)
 	if err != nil {
-		return fmt.Errorf("erreur récupération lignes modifiées : %w", err)
+		return fmt.Errorf("erreur suppression ancienne catégorie - %s", err.Error())
 	}
-
-	if rowsAffected <= 0 {
-		return fmt.Errorf("aucune ligne modifiée")
+	if categorieID > 0 {
+		_, err = r.dbContext.Exec("INSERT INTO Fil_Type (fk_fil, fk_type) VALUES (?, ?);", filID, categorieID)
+		if err != nil {
+			return fmt.Errorf("erreur insertion catégorie - %s", err.Error())
+		}
 	}
+	return nil
+}
 
+// SetStatus remplace le statut d'un fil
+func (r *FilsRepositories) SetStatus(filID, statusID int) error {
+	_, err := r.dbContext.Exec("DELETE FROM Fil_status WHERE fk_fil = ?;", filID)
+	if err != nil {
+		return fmt.Errorf("erreur suppression ancien statut - %s", err.Error())
+	}
+	if statusID > 0 {
+		_, err = r.dbContext.Exec("INSERT INTO Fil_status (fk_fil, fk_status) VALUES (?, ?);", filID, statusID)
+		if err != nil {
+			return fmt.Errorf("erreur insertion statut - %s", err.Error())
+		}
+	}
 	return nil
 }

@@ -30,6 +30,10 @@
 
         {{if and .Connected (eq .ConnectedUser (printf "%d" .Fil.Creator.Id))}}
             <a class="fil" href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
+            <!-- CSS à mettre ici -->
+            <form action="/fil/{{$.Fil.Id}}/delete" method="post" onsubmit="return confirm('Supprimer ce fil et tous ses messages ?')">
+                <button type="submit">Supprimer le fil</button>
+            </form>
         {{end}}
         
 
@@ -100,6 +104,14 @@
                                     <input type="hidden" name="action" value="dislike">
                                     <button type="submit" class="btn-vote">󰔑 {{.NbDislike}}</button>
                                 </form>
+
+                                <!-- CSS à mettre ici -->
+                                {{if and $.Connected (eq $.ConnectedUser (printf "%d" .Creator.Id))}}
+                                    <a href="/fil/{{$.Fil.Id}}/message/{{.Id}}/update">Modifier</a>
+                                    <form  action="/fil/{{$.Fil.Id}}/message/{{.Id}}/delete" method="post" onsubmit="return confirm('Supprimer ce message ?')">
+                                        <button type="submit">Supprimer</button>
+                                    </form>
+                                {{end}}
                             </div>
                         </li>
                     {{end}}
@@ -122,6 +134,15 @@
         </section>
 
         {{if .Connected}}
+            {{if eq .Fil.TagName "Fermé"}}
+                <div class="login-prompt">
+                    <p>Ce fil est fermé. Les réponses ne sont plus acceptées.</p>
+                </div>
+            {{else if eq .Fil.TagName "Archivé"}}
+                <div class="login-prompt">
+                    <p>Ce fil est archivé. Les réponses ne sont plus acceptées.</p>
+                </div>
+            {{else}}
             <form class="reply-form" action="/fil/{{.Fil.Id}}/message" method="post">
                 <h2>Répondre à ce fil</h2>
 
@@ -133,6 +154,7 @@
 
                 <button type="submit">Envoyer</button>
             </form>
+            {{end}}
         {{else}}
             <div class="login-prompt">
                 <p>Vous devez être connecté(e) pour répondre à ce fil. <a href="/connection">Se connecter</a></p>
