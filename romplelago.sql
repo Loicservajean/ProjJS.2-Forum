@@ -11,8 +11,6 @@ CREATE TABLE Fil_de_discussion (
     name                 VARCHAR(50) NOT NULL,
     description          TEXT,
     date_creation		 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    open                 BOOLEAN,
-    archive               BOOLEAN,
     fk_utilisateur       INT NULL
 ) ENGINE=InnoDB;
 
@@ -166,3 +164,16 @@ CREATE TABLE LikeDislike (
     FOREIGN KEY (fk_utilisateur) REFERENCES Utilisateur(id_utilisateur),
     FOREIGN KEY (fk_message) REFERENCES Message(id_message)
 ) ENGINE=InnoDB;
+INSERT INTO Status (name, description) VALUES ("Ouvert", "Fil disponible et réponses disponibles");
+INSERT INTO Status (name, description) VALUES ("Fermé", "Fil disponible et réponses indisponibles");
+INSERT INTO Status (name, description) VALUES ("Archivé", "Fil indisponible à part pour le créateur");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("games", "Discussions autour des jeux vidéo");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("Archipelago links", "Liens vers le site de l'Archipelago");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("Core-Vérified games", "Jeux officiellement supportés et intégrés par Archipelago");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("New Games", "Propositions de nouveaux jeux");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("FAQ", "Foire Aux Questions");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("Games with Energy link", "Jeux concernés par le système Energy Link");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("Helping", "Comment puis-je vous aider ?");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("Général topic", "Sujets généraux");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("proposed modification", "Propositions de modifications");
+INSERT INTO CategoriesDiscussion (name, description) VALUES ("Uncategorized categories", "Catégories non classées");

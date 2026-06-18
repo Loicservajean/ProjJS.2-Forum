@@ -49,6 +49,7 @@ type FilListPageData struct {
 	Limit         int
 	TotalPages    int
 	ConnectedUser string
+	Categories    []models.CategoriesDiscussion
 }
 
 // Voilà les seules valeurs de "limit" qu'on accepte depuis l'URL. Si quelqu'un utilise des valeurs bizarre, on l'ignore.
@@ -130,7 +131,30 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages, ConnectedUser: userID}
+	categories, err := c.catRepo.ReadAll()
+	if err != nil {
+		http.Error(w, "Erreur chargement catégories : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Filtrage côté serveur si une catégorie est demandée
+	categorieID := 0
+	if catStr := r.URL.Query().Get("categorie_id"); catStr != "" {
+		if v, err := strconv.Atoi(catStr); err == nil {
+			categorieID = v
+		}
+	}
+	if categorieID > 0 {
+		var filtered []models.FilDiscussionFull
+		for _, f := range fils {
+			if f.CategorieId == categorieID {
+				filtered = append(filtered, f)
+			}
+		}
+		fils = filtered
+	}
+
+	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages, ConnectedUser: userID, Categories: categories}
 	if err := c.templates.ExecuteTemplate(w, "fils.list", donnees); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
