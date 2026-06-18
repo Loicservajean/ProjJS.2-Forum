@@ -56,6 +56,7 @@ var limitesAutorisees = map[int]bool{10: true, 20: true, 30: true}
 
 func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
 	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
+		// Fonctions de calcul pour la page précédente et la suivante.
 		"additionner": func(a, b int) int { return a + b },
 		"soustraire":  func(a, b int) int { return a - b },
 	}
