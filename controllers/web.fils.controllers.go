@@ -9,6 +9,7 @@ import (
 	"rompelago/repositories"
 	"rompelago/services"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -397,4 +398,61 @@ func (c *WebFilsControllers) UpdateAction(w http.ResponseWriter, r *http.Request
 	}
 
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
+}
+
+type SearchResultPageData struct {
+	Fils          []models.FilDiscussionFull
+	MotCle        string
+	Page          int
+	Limit         int
+	TotalPages    int
+	ConnectedUser string
+}
+
+// SearchPage vérifi la recherche d'un fil de discussion, la route elle est protégée par RequireAuth donc seul un utilisateur connecté arrive ici
+func (c *WebFilsControllers) SearchPage(w http.ResponseWriter, r *http.Request) {
+	// On récupère ce que l'utilisateur a tapé dans la barre de recherche
+	motCle := strings.TrimSpace(r.URL.Query().Get("q"))
+
+	userID := ""
+	if claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims); ok {
+		userID = claims.UserID
+	}
+
+	// Si la recherche est vide,la page est afficher sans résultat plutôt que de planter
+	if motCle == "" {
+		data := SearchResultPageData{MotCle: "", Page: 1, Limit: 10, TotalPages: 1, ConnectedUser: userID}
+		if err := c.templates.ExecuteTemplate(w, "recherche", data); err != nil {
+			http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	limite, page := limiteEtPageDepuisRequete(r)
+
+	total, err := c.service.CountSearch(motCle)
+	if err != nil {
+		http.Error(w, "Erreur comptage recherche : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	decalage, totalPages, page := calculerPagination(limite, page, total)
+
+	fils, err := c.service.Search(motCle, limite, decalage)
+	if err != nil {
+		http.Error(w, "Erreur lors de la recherche : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := SearchResultPageData{
+		Fils:          fils,
+		MotCle:        motCle,
+		Page:          page,
+		Limit:         limite,
+		TotalPages:    totalPages,
+		ConnectedUser: userID,
+	}
+	if err := c.templates.ExecuteTemplate(w, "recherche", data); err != nil {
+		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
+	}
 }

@@ -89,3 +89,17 @@ func (s *FilDiscussionService) UpdateFull(id int, fils models.FilDiscussionFull)
 	}
 	return nil
 }
+
+func (s *FilDiscussionService) Search(motCle string, limit, offset int) ([]models.FilDiscussionFull, error) {
+	if motCle == "" {
+		return nil, fmt.Errorf("le mot-clé de recherche est vide")
+	}
+	return s.FilsRepository.SearchFils(motCle, limit, offset)
+}
+
+func (s *FilDiscussionService) CountSearch(motCle string) (int, error) {
+	if motCle == "" {
+		return 0, fmt.Errorf("le mot-clé de recherche est vide")
+	}
+	return s.FilsRepository.CountSearchFils(motCle)
+}

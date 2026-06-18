@@ -1,0 +1,75 @@
+{{define "recherche"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recherche - Rompelago</title>
+  <link rel="stylesheet" href="/static/css/forum.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="align-header">
+      <a class="brand" href="/forum"></a>
+        <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+        <div>
+          <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+        </div>
+      </a>
+      <div class="auth-links">
+        <a class="btn-login" href="/connection">connection</a>
+        <a class="btn-register" href="/inscription">Inscription</a>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="box">
+      <h1>Recherche</h1>
+      
+      <form class="search-form" method="get" action="/recherche">
+        <input type="text" name="q" placeholder="Titre, tag ou catégorie..." value="{{.MotCle}}">
+        <button type="submit">Rechercher</button>
+      </form>
+
+      {{if .MotCle}}
+        <p>Résultats pour : <strong>{{.MotCle}}</strong></p>
+        {{if .Fils}}
+          {{range .Fils}}
+          <div class="fil-card">
+            <h2><a class="title" href="/fil/{{.Id}}">{{.Name}}</a></h2>
+            <p class="Description">{{.Description}}</p>
+            <small>
+              Catégorie : {{.CategorieName}} |
+              Statut : {{.TagName}} |
+              Créé le : {{.DateCreation}}
+            </small>
+          </div>
+          {{end}}
+
+          {{if gt .Limit 0}}
+            <div class="pagination">
+              {{if gt .Page 1}}
+                <a class="page-link" href="/recherche?q={{.MotCle}}&limit={{.Limit}}&page={{soustraire .Page 1}}">« Précédent</a>
+              {{end}}
+              <span class="page-info">Page {{.Page}} / {{.TotalPages}}</span>
+              {{if lt .Page .TotalPages}}
+                <a class="page-link" href="/recherche?q={{.MotCle}}&limit={{.Limit}}&page={{additionner .Page 1}}">Suivant »</a>
+              {{end}}
+            </div>
+          {{end}}
+        {{else}}
+          <p>Aucun fil de discussion ne correspond à votre recherche.</p>
+        {{end}}
+      {{else}}
+        <p>Saisissez un mot-clé pour rechercher un fil de discussion.</p>
+      {{end}}
+
+      <p><a class="nouveau" href="/forum">← Retour au forum</a></p>
+    </div>
+  </main>
+</body>
+</html>
+{{end}}

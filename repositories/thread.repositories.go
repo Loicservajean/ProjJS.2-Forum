@@ -354,3 +354,76 @@ func (r *FilsRepositories) SetStatus(filID, statusID int) error {
 	}
 	return nil
 }
+
+//La fonction permet de faire des recherche par catégorie ou pas nom
+func (r *FilsRepositories) SearchFils(motCle string, limit, offset int) ([]models.FilDiscussionFull, error) {
+	query := `
+		SELECT 
+			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
+			COALESCE(c.id_type, 0), COALESCE(c.name, ''), COALESCE(c.Description, ''),
+			COALESCE(s.name, ''), COALESCE(s.Description, ''),
+			COALESCE(t.fk_utilisateur, 0)
+		FROM Fil_de_discussion t
+		LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
+		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
+		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
+		LEFT JOIN Status s ON s.id_status = fs.fk_status
+		WHERE (s.name != 'Archivé' OR s.name IS NULL)
+		  AND (t.name LIKE ? OR c.name LIKE ?)
+		ORDER BY t.date_creation DESC
+	`
+
+	// ici le mot-clé de % set à rechercher fonctionne même si elle est au milieu d'un mot
+	motif := "%" + motCle + "%"
+
+	var args []interface{}
+	args = append(args, motif, motif)
+	if limit > 0 {
+		query += " LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+	}
+
+	result, err := r.dbContext.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("Erreur lors de la requete - %v", err)
+	}
+	defer result.Close()
+
+	var list []models.FilDiscussionFull
+	for result.Next() {
+		var t models.FilDiscussionFull
+		scanErr := result.Scan(
+			&t.Id, &t.Name, &t.Description, &t.DateCreation,
+			&t.CategorieId, &t.CategorieName, &t.CategorieDescription,
+			&t.TagName, &t.TagDescription,
+			&t.Creator.Id,
+		)
+		if scanErr != nil {
+			log.Printf("Erreur scan - %v", scanErr)
+			continue
+		}
+		list = append(list, t)
+	}
+
+	return list, nil
+}
+
+func (r *FilsRepositories) CountSearchFils(motCle string) (int, error) {
+	var total int
+	query := `
+		SELECT COUNT(DISTINCT t.id_fil_de_discussion)
+		FROM Fil_de_discussion t
+		LEFT JOIN Fil_Type ft ON ft.fk_fil = t.id_fil_de_discussion
+		LEFT JOIN CategoriesDiscussion c ON c.id_type = ft.fk_type
+		LEFT JOIN Fil_status fs ON fs.fk_fil = t.id_fil_de_discussion
+		LEFT JOIN Status s ON s.id_status = fs.fk_status
+		WHERE (s.name != 'Archivé' OR s.name IS NULL)
+		  AND (t.name LIKE ? OR c.name LIKE ?);
+	`
+	motif := "%" + motCle + "%"
+	err := r.dbContext.QueryRow(query, motif, motif).Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("Erreur lors du comptage de la recherche - %v", err)
+	}
+	return total, nil
+}

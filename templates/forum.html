@@ -54,6 +54,12 @@
       <h1>Forum</h1>
       <p>Bienvenue sur le forum de Rompelago ! Ici, vous pouvez discuter de tout ce qui concerne notre projet, poser des questions, partager des idées et collaborer avec d'autres membres de la communauté. N'hésitez pas à participer et à contribuer à la croissance de notre forum !</p>
       <a class="nouveau" href="/nouveau">+ Nouveau fil</a>
+      {{if .ConnectedUser}}
+        <form class="search-form" method="get" action="/recherche">
+          <input type="text" name="q" placeholder="Rechercher un fil (titre, tag ou catégorie)...">
+          <button type="submit">Rechercher</button>
+        </form>
+      {{end}}
       <form class="limit-form" method="get" action="/forum">
         <label for="limit">Afficher :</label>
         <select id="limit" name="limit" onchange="this.form.submit()">

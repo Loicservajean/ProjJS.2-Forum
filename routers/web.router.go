@@ -23,6 +23,7 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 
 	// Fils de discussion
 	r.HandleFunc("/forum", tc.ListPage).Methods("GET")
+	r.Handle("/recherche", middleware.RequireAuth(http.HandlerFunc(tc.SearchPage))).Methods("GET")
 	r.Handle("/nouveau", middleware.RequireAuth(http.HandlerFunc(tc.CreateFil))).Methods("GET")
 	r.Handle("/nouveaufil", middleware.RequireAuth(http.HandlerFunc(tc.CreateAction))).Methods("POST")
 	r.HandleFunc("/fil/{id}", tc.DetailPage).Methods("GET")
