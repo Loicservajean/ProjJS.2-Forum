@@ -28,12 +28,12 @@ type CreatePageData struct {
 }
 
 type FilDetailPageData struct {
-	Fil        models.FilDiscussionFull
-	Messages   []models.PostModel
-	Connected  bool
-	Page       int
-	Limit      int
-	TotalPages int
+	Fil           models.FilDiscussionFull
+	Messages      []models.PostModel
+	Connected     bool
+	Page          int
+	Limit         int
+	TotalPages    int
 	ConnectedUser string
 }
 
@@ -44,17 +44,17 @@ type UpdateFilPageData struct {
 }
 
 type FilListPageData struct {
-	Fils       []models.FilDiscussionFull
-	Page       int
-	Limit      int
-	TotalPages int
+	Fils          []models.FilDiscussionFull
+	Page          int
+	Limit         int
+	TotalPages    int
+	ConnectedUser string
 }
 
 // Voilà les seules valeurs de "limit" qu'on accepte depuis l'URL. Si quelqu'un utilise des valeurs bizarre, on l'ignore.
 var limitesAutorisees = map[int]bool{10: true, 20: true, 30: true}
 
 func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
-// Fonctions de calcul pour la page précédente et la suivante.
 	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
 		"additionner": func(a, b int) int { return a + b },
 		"soustraire":  func(a, b int) int { return a - b },
@@ -69,7 +69,7 @@ func InitWebFilsController(service *services.FilDiscussionService, postService *
 	}
 }
 
-// limiteEtPageDepuisRequete va voir ce que la personne a demandé dans l'URL et vérifie que ça tient la route. 
+// limiteEtPageDepuisRequete va voir ce que la personne a demandé dans l'URL et vérifie que ça tient la route.
 // La fonction est utilisée par ListPage et DetailPage, comme ça on ne répète pas deux fois le même code.
 func limiteEtPageDepuisRequete(r *http.Request) (limite int, page int) {
 	limite = 10
@@ -106,7 +106,16 @@ func calculerPagination(limite, page, total int) (decalage int, totalPages int, 
 func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 	limite, page := limiteEtPageDepuisRequete(r)
 
-	total, err := c.service.CountFils()
+	userID := ""
+	connectedUserID := 0
+	if claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims); ok {
+		userID = claims.UserID
+		if id, err := strconv.Atoi(claims.UserID); err == nil {
+			connectedUserID = id
+		}
+	}
+
+	total, err := c.service.CountFils(connectedUserID)
 	if err != nil {
 		http.Error(w, "Erreur comptage : "+err.Error(), http.StatusInternalServerError)
 		return
@@ -114,13 +123,13 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 
 	decalage, totalPages, page := calculerPagination(limite, page, total)
 
-	fils, err := c.service.ReadAllFull(limite, decalage)
+	fils, err := c.service.ReadAllFull(limite, decalage, connectedUserID)
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des fils : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages}
+	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages, ConnectedUser: userID}
 	if err := c.templates.ExecuteTemplate(w, "fils.list", donnees); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
@@ -162,15 +171,28 @@ func (c *WebFilsControllers) CreateAction(w http.ResponseWriter, r *http.Request
 		}
 	}
 
+	categorieID := 0
+	if cat, err := strconv.Atoi(r.FormValue("categorie_id")); err == nil {
+		categorieID = cat
+	}
+
 	fils := models.FilDiscussionFull{
 		Name:         r.FormValue("titre"),
 		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
 		CreatorID:    creatorID,
+		CategorieId:  categorieID,
 	}
 
-	if _, err := c.service.Create(fils); err != nil {
+	id, err := c.service.Create(fils)
+	if err != nil {
 		http.Error(w, "Erreur lors de la création : "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Statut "Ouvert" (id=1) par défaut
+	if err := c.service.FilsRepository.SetStatus(id, 1); err != nil {
+		http.Error(w, "Erreur statut : "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -199,6 +221,22 @@ func (c *WebFilsControllers) DeleteAction(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Identifiant invalide", http.StatusBadRequest)
 		return
 	}
+
+	fil, err := c.service.ReadByIdWithDetails(id)
+	if err != nil {
+		http.Error(w, "Fils introuvable : "+err.Error(), http.StatusNotFound)
+		return
+	}
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims == nil {
+		http.Redirect(w, r, "/connection", http.StatusSeeOther)
+		return
+	}
+	if claims.UserID != strconv.Itoa(fil.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
 	if err := c.service.Delete(id); err != nil {
 		http.Error(w, "Erreur lors de la suppression : "+err.Error(), http.StatusBadRequest)
 		return
@@ -241,12 +279,12 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 	}
 
 	data := FilDetailPageData{
-		Fil:        fils,
-		Messages:   messages,
-		Connected:  connected,
-		Page:       page,
-		Limit:      limite,
-		TotalPages: totalPages,
+		Fil:           fils,
+		Messages:      messages,
+		Connected:     connected,
+		Page:          page,
+		Limit:         limite,
+		TotalPages:    totalPages,
 		ConnectedUser: userID,
 	}
 
@@ -299,9 +337,21 @@ func (c *WebFilsControllers) UpdateAction(w http.ResponseWriter, r *http.Request
 		dateCreation = time.Now().Format("2006-01-02")
 	}
 
+	categorieID := 0
+	if cat, err := strconv.Atoi(r.FormValue("categorie_id")); err == nil {
+		categorieID = cat
+	}
+
+	statusID := 0
+	if st, err := strconv.Atoi(r.FormValue("status_id")); err == nil {
+		statusID = st
+	}
+
 	fils := models.FilDiscussionFull{
 		Description:  r.FormValue("description"),
 		DateCreation: dateCreation,
+		CategorieId:  categorieID,
+		TagId:        statusID,
 	}
 
 	if err := c.service.UpdateFull(id, fils); err != nil {

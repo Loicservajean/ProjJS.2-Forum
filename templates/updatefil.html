@@ -10,7 +10,7 @@
 <body>
 <header class="header">
     <div class="align-header">
-        <a class="brand" href="/forum">
+        <a class="brand" href="/forum"></a>
             <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
             <div>
                 <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
@@ -35,14 +35,14 @@
             <label for="categorie_id">Catégorie</label>
             <select id="categorie_id" name="categorie_id">
               {{range .Categories}}
-                <option value="{{.Id}}">{{.Name}}</option>
+                <option value="{{.Id}}" {{if eq .Name $.Fil.CategorieName}}selected{{end}}>{{.Name}}</option>
               {{end}}
             </select>
 
             <label for="status_id">Statut</label>
             <select id="status_id" name="status_id">
               {{range .Statuts}}
-                <option value="{{.Id}}">{{.Nom}}</option>
+                <option value="{{.Id}}" {{if eq .Nom $.Fil.TagName}}selected{{end}}>{{.Nom}}</option>
               {{end}}
             </select>
 

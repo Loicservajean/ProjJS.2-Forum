@@ -19,12 +19,12 @@ func (s *FilDiscussionService) ReadAll() ([]models.FilDiscussionModel, error) {
 	return s.FilsRepository.ReadAll()
 }
 
-func (s *FilDiscussionService) ReadAllFull(limit, offset int) ([]models.FilDiscussionFull, error) {
-	return s.FilsRepository.ReadAllWithCategoryAndStatus(limit, offset)
+func (s *FilDiscussionService) ReadAllFull(limit, offset int, connectedUserID int) ([]models.FilDiscussionFull, error) {
+	return s.FilsRepository.ReadAllWithCategoryAndStatus(limit, offset, connectedUserID)
 }
 
-func (s *FilDiscussionService) CountFils() (int, error) {
-	return s.FilsRepository.CountFils()
+func (s *FilDiscussionService) CountFils(connectedUserID int) (int, error) {
+	return s.FilsRepository.CountFils(connectedUserID)
 }
 
 func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error) {
@@ -32,7 +32,7 @@ func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error
 		return -1, fmt.Errorf("titre et description obligatoires")
 	}
 	dateNow := time.Now().Format("2006-01-02 15:04:05")
-	return s.FilsRepository.Create(models.FilDiscussionModel{
+	id, err := s.FilsRepository.Create(models.FilDiscussionModel{
 		Id:           fils.Id,
 		Name:         fils.Name,
 		Description:  fils.Description,
@@ -40,6 +40,15 @@ func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error
 		Open:         fils.Open,
 		CreatorID:    fils.CreatorID,
 	})
+	if err != nil {
+		return -1, err
+	}
+	if fils.CategorieId > 0 {
+		if err := s.FilsRepository.SetCategory(id, fils.CategorieId); err != nil {
+			return id, err
+		}
+	}
+	return id, nil
 }
 
 func (s *FilDiscussionService) Delete(id int) error {
@@ -63,7 +72,7 @@ func (s *FilDiscussionService) UpdateFull(id int, fils models.FilDiscussionFull)
 	if fils.Description == "" {
 		return fmt.Errorf("description obligatoire")
 	}
-	return s.FilsRepository.UpdateFull(models.FilDiscussionModel{
+	err := s.FilsRepository.UpdateFull(models.FilDiscussionModel{
 		Id:          id,
 		Name:        fils.Name,
 		Description: fils.Description,
@@ -72,4 +81,14 @@ func (s *FilDiscussionService) UpdateFull(id int, fils models.FilDiscussionFull)
 		Archive:     fils.Archive,
 		CreatorID:   fils.CreatorID,
 	})
+	if err != nil {
+		return err
+	}
+	if err := s.FilsRepository.SetCategory(id, fils.CategorieId); err != nil {
+		return err
+	}
+	if err := s.FilsRepository.SetStatus(id, fils.TagId); err != nil {
+		return err
+	}
+	return nil
 }

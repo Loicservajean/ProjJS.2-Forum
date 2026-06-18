@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"html/template"
 	"net/http"
 	"rompelago/auth"
 	"rompelago/middleware"
@@ -13,14 +14,125 @@ import (
 
 type WebMessageControllers struct {
 	postService *services.PostDiscussionService
+	templates   *template.Template
 }
 
 func InitWebMessageController(postService *services.PostDiscussionService) *WebMessageControllers {
-	return &WebMessageControllers{postService: postService}
+	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
+		"additionner": func(a, b int) int { return a + b },
+		"soustraire":  func(a, b int) int { return a - b },
+	}
+	tmpl := template.Must(template.New("").Funcs(fonctionsDisponiblesDansLesTemplates).ParseGlob("templates/*.html"))
+	return &WebMessageControllers{
+		postService: postService,
+		templates:   tmpl,
+	}
 }
 
-// POST /fil/{id}/message
-// Ajoute un message dans un fil. Requiert d'être connecté avant.
+type UpdateMessagePageData struct {
+	Post models.PostModel
+}
+
+// GET /fil/{id}/message/{msgId}/update
+func (c *WebMessageControllers) UpdateMessagePage(w http.ResponseWriter, r *http.Request) {
+	msgId, err := strconv.Atoi(mux.Vars(r)["msgId"])
+	if err != nil || msgId <= 0 {
+		http.Error(w, "Identifiant de message invalide", http.StatusBadRequest)
+		return
+	}
+
+	post, err := c.postService.ReadByIdFull(msgId)
+	if err != nil {
+		http.Error(w, "Message introuvable : "+err.Error(), http.StatusNotFound)
+		return
+	}
+
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims == nil {
+		http.Redirect(w, r, "/connection", http.StatusSeeOther)
+		return
+	}
+	if claims.UserID != strconv.Itoa(post.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
+	if err := c.templates.ExecuteTemplate(w, "updatemessage", UpdateMessagePageData{Post: post}); err != nil {
+		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// POST /fil/{id}/message/{msgId}/update
+func (c *WebMessageControllers) UpdateMessageAction(w http.ResponseWriter, r *http.Request) {
+	filId := mux.Vars(r)["id"]
+	msgId, err := strconv.Atoi(mux.Vars(r)["msgId"])
+	if err != nil || msgId <= 0 {
+		http.Error(w, "Identifiant de message invalide", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims == nil {
+		http.Redirect(w, r, "/connection", http.StatusSeeOther)
+		return
+	}
+
+	post, err := c.postService.ReadByIdFull(msgId)
+	if err != nil {
+		http.Error(w, "Message introuvable", http.StatusNotFound)
+		return
+	}
+	if claims.UserID != strconv.Itoa(post.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formulaire invalide", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.postService.Update(msgId, r.FormValue("name"), r.FormValue("contenu")); err != nil {
+		http.Error(w, "Erreur lors de la modification : "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/fil/"+filId, http.StatusSeeOther)
+}
+
+// POST /fil/{id}/message/{msgId}/delete
+func (c *WebMessageControllers) DeleteMessageAction(w http.ResponseWriter, r *http.Request) {
+	filId := mux.Vars(r)["id"]
+	msgId, err := strconv.Atoi(mux.Vars(r)["msgId"])
+	if err != nil || msgId <= 0 {
+		http.Error(w, "Identifiant de message invalide", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims == nil {
+		http.Redirect(w, r, "/connection", http.StatusSeeOther)
+		return
+	}
+
+	post, err := c.postService.ReadByIdFull(msgId)
+	if err != nil {
+		http.Error(w, "Message introuvable", http.StatusNotFound)
+		return
+	}
+	if claims.UserID != strconv.Itoa(post.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
+	if err := c.postService.Delete(msgId); err != nil {
+		http.Error(w, "Erreur lors de la suppression : "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/fil/"+filId, http.StatusSeeOther)
+}
+
 func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *http.Request) {
 	filId, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil || filId <= 0 {
@@ -65,7 +177,6 @@ func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Parser le formulaire
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Formulaire invalide", http.StatusBadRequest)
 		return

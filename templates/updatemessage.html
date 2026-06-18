@@ -1,0 +1,44 @@
+{{define "updatemessage"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier le message</title>
+    <link rel="stylesheet" href="/static/css/update.css">
+</head>
+<body>
+<header class="header">
+    <div class="align-header">
+        <a class="brand" href="/forum">
+            <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+            <div>
+                <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+            </div>
+        </a>
+        <div class="auth-links">
+            <a class="btn-login" href="/connection">Connection</a>
+            <a class="btn-register" href="/inscription">Inscription</a>
+        </div>
+    </div>
+</header>
+<main>
+    <section class="box">
+        <h1>Modifier le message</h1>
+        <form class="update-form" action="/fil/{{.Post.FilAssocié.Id}}/message/{{.Post.Id}}/update" method="post">
+            <label for="name">Titre</label>
+            <input id="name" name="name" type="text" value="{{.Post.Name}}" required>
+
+            <label for="contenu">Contenu</label>
+            <textarea id="contenu" name="contenu" rows="6" required>{{.Post.Contenu}}</textarea>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-register">Enregistrer</button>
+                <a href="/fil/{{.Post.FilAssocié.Id}}" class="cancel-link">Annuler</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>
+{{end}}

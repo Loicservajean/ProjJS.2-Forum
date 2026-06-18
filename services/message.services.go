@@ -43,6 +43,23 @@ func (s *PostDiscussionService) Create(post models.PostModel) (int, error) {
 	return s.PostRepository.CreatePost(post)
 }
 
+func (s *PostDiscussionService) ReadByIdFull(id int) (models.PostModel, error) {
+	if id <= 0 {
+		return models.PostModel{}, fmt.Errorf("identifiant invalide : %d", id)
+	}
+	return s.PostRepository.ReadPostByIdFull(id)
+}
+
+func (s *PostDiscussionService) Update(id int, name, contenu string) error {
+	if id <= 0 {
+		return fmt.Errorf("identifiant invalide : %d", id)
+	}
+	if name == "" || contenu == "" {
+		return fmt.Errorf("titre et contenu obligatoires")
+	}
+	return s.PostRepository.UpdatePost(id, name, contenu)
+}
+
 func (s *PostDiscussionService) Delete(id int) error {
 	if id <= 0 {
 		return fmt.Errorf("identifiant invalide : %d", id)
