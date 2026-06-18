@@ -68,8 +68,17 @@
                     <option value="30" {{if eq .Limit 30}}selected{{end}}>30</option>
                     <option value="tout" {{if eq .Limit 0}}selected{{end}}>Tout afficher</option>
                 </select>
+                <input type="hidden" name="sort" value="{{.Sort}}">
             </form>
-
+            
+            <form class="sort-form" method="get" action="/fil/{{.Fil.Id}}">
+                <input type="hidden" name="sort" value="{{if eq .Sort "popularity"}}date{{else}}popularity{{end}}">
+                <input type="hidden" name="limit" value="{{.Limit}}">
+                <input type="hidden" name="page" value="{{.Page}}">
+                <button type="submit">
+                    {{if eq .Sort "popularity"}}Trier par date{{else}}Afficher par score de popularité{{end}}
+                </button>
+            </form>
             {{if .Messages}}
                 <ul class="msg-list">
                     {{range .Messages}}
@@ -123,11 +132,11 @@
             {{if gt .Limit 0}}
                 <div class="pagination">
                     {{if gt .Page 1}}
-                        <a class="page-link" href="/fil/{{.Fil.Id}}?limit={{.Limit}}&page={{soustraire .Page 1}}">« Précédent</a>
+                        <a class="page-link" href="/fil/{{.Fil.Id}}?limit={{.Limit}}&page={{soustraire .Page 1}}&sort={{.Sort}}">« Précédent</a>
                     {{end}}
                     <span class="page-info">Page {{.Page}} / {{.TotalPages}}</span>
                     {{if lt .Page .TotalPages}}
-                        <a class="page-link" href="/fil/{{.Fil.Id}}?limit={{.Limit}}&page={{additionner .Page 1}}">Suivant »</a>
+                        <a class="page-link" href="/fil/{{.Fil.Id}}?limit={{.Limit}}&page={{additionner .Page 1}}&sort={{.Sort}}">Suivant »</a>
                     {{end}}
                 </div>
             {{end}}
