@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Fil.Name}}</title>
     <link rel="stylesheet" href="/static/css/fils.css">
+    <!--google font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
 <header class="header">
@@ -25,35 +29,30 @@
 <main>
     <div class="box">
         <h1>{{.Fil.Name}}</h1>
-
         <p class="fil-description">{{.Fil.Description}}</p>
 
         {{if and .Connected (eq .ConnectedUser (printf "%d" .Fil.Creator.Id))}}
-            <a class="fil" href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
-            <!-- CSS à mettre ici -->
-            <form action="/fil/{{$.Fil.Id}}/delete" method="post" onsubmit="return confirm('Supprimer ce fil et tous ses messages ?')">
-                <button type="submit">Supprimer le fil</button>
-            </form>
+            <div class="fil-actions">
+                <a class="fil" href="/fil/{{$.Fil.Id}}/update">Gérer le fil</a>
+                <form action="/fil/{{$.Fil.Id}}/delete" method="post" onsubmit="return confirm('Supprimer ce fil et tous ses messages ?')">
+                    <button class="fil" type="submit">Supprimer le fil</button>
+                </form>
+            </div>
         {{end}}
-        
 
         <div class="message">
             {{if .Fil.CategorieName}}
                 <span class="badge">Catégorie : {{.Fil.CategorieName}}</span>
             {{end}}
 
-            {{if .Fil.TagName}}
-                <span class="badge">Statut : {{.Fil.TagName}}</span>
-            {{end}}
-
             <span class="badge">Créé le : {{.Fil.DateCreation}}</span>
 
             {{if eq .Fil.Archive 1}}
                 <span class="badge-archive">Archivée</span>
-            {{else if eq .Fil.Open 0}}
+            {{else if eq .Fil.TagName "Ouvert"}}
                 <span class="badge-open">Ouvert</span>
             {{else}}
-                <span class="badge">Fermé</span>
+                <span class="badge-ferme">Fermé</span>
             {{end}}
         </div>
 
@@ -105,11 +104,10 @@
                                     <button type="submit" class="btn-vote">󰔑 {{.NbDislike}}</button>
                                 </form>
 
-                                <!-- CSS à mettre ici -->
                                 {{if and $.Connected (eq $.ConnectedUser (printf "%d" .Creator.Id))}}
-                                    <a href="/fil/{{$.Fil.Id}}/message/{{.Id}}/update">Modifier</a>
+                                    <a class="fil" href="/fil/{{$.Fil.Id}}/message/{{.Id}}/update">Modifier</a>
                                     <form  action="/fil/{{$.Fil.Id}}/message/{{.Id}}/delete" method="post" onsubmit="return confirm('Supprimer ce message ?')">
-                                        <button type="submit">Supprimer</button>
+                                        <button class="fil" type="submit">Supprimer</button>
                                     </form>
                                 {{end}}
                             </div>
