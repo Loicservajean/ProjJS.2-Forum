@@ -33,6 +33,7 @@ type FilDetailPageData struct {
 	Connected     bool
 	Page          int
 	Limit         int
+	Sort          string
 	TotalPages    int
 	ConnectedUser string
 }
@@ -103,6 +104,14 @@ func calculerPagination(limite, page, total int) (decalage int, totalPages int, 
 	}
 	decalage = (page - 1) * limite
 	return decalage, totalPages, page
+}
+
+func sortDepuisRequete(r *http.Request) string {
+	sort := r.URL.Query().Get("sort")
+	if sort == "popularity" || sort == "popularite" {
+		return "popularity"
+	}
+	return ""
 }
 
 func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
@@ -291,7 +300,8 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 
 	decalage, totalPages, page := calculerPagination(limite, page, total)
 
-	messages, err := c.postService.ReadByFilId(id, limite, decalage)
+	sort := sortDepuisRequete(r)
+	messages, err := c.postService.ReadByFilId(id, limite, decalage, sort)
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des messages : "+err.Error(), http.StatusInternalServerError)
 		return
@@ -309,12 +319,14 @@ func (c *WebFilsControllers) DetailPage(w http.ResponseWriter, r *http.Request) 
 		Connected:     connected,
 		Page:          page,
 		Limit:         limite,
+		Sort:          sort,
 		TotalPages:    totalPages,
 		ConnectedUser: userID,
 	}
 
 	if err := c.templates.ExecuteTemplate(w, "fils", data); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
