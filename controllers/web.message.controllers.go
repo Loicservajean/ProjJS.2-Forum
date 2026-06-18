@@ -133,6 +133,8 @@ func (c *WebMessageControllers) DeleteMessageAction(w http.ResponseWriter, r *ht
 	http.Redirect(w, r, "/fil/"+filId, http.StatusSeeOther)
 }
 
+// POST /fil/{id}/message
+// Ajoute un message dans un fil. Requiert d'être connecté avant.
 func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *http.Request) {
 	filId, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil || filId <= 0 {
@@ -177,6 +179,7 @@ func (c *WebMessageControllers) CreateMessageAction(w http.ResponseWriter, r *ht
 		return
 	}
 
+	//Parser le Formulaire
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Formulaire invalide", http.StatusBadRequest)
 		return
