@@ -106,7 +106,7 @@ func (r *CategoryRepositories) ReadById(id int) (models.CategoriesDiscussion, er
 }
 
 func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
-	query := "SELECT id_fil_de_discussion, name, description, date_creation, open, archive FROM Fil_de_discussion;"
+	query := "SELECT id_fil_de_discussion, name, description, date_creation FROM Fil_de_discussion;"
 	result, resultErr := r.dbContext.Query(query)
 	if resultErr != nil {
 		return nil, fmt.Errorf("Erreur lors de la requete - %v", resultErr)
@@ -117,7 +117,7 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 	var listFils []models.FilDiscussionModel
 	for result.Next() {
 		var fildediscussion models.FilDiscussionModel
-		scanErr := result.Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.Open, &fildediscussion.Archive)
+		scanErr := result.Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation)
 		if scanErr != nil {
 			log.Printf("Erreur lors du scan - %v", scanErr)
 			continue
@@ -128,14 +128,12 @@ func (r *FilsRepositories) ReadAll() ([]models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (int, error) {
-	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `open`, `archive`, `fk_utilisateur`) VALUES (?,?,?,?,?,?);"
+	query := "INSERT INTO `Fil_de_discussion`(`name`, `description`, `date_creation`, `fk_utilisateur`) VALUES (?,?,?,?);"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
 		fildediscussion.Description,
 		fildediscussion.DateCreation,
-		fildediscussion.Open,
-		fildediscussion.Archive,
 		fildediscussion.CreatorID,
 	)
 	if sqlErr != nil {
@@ -152,9 +150,9 @@ func (r *FilsRepositories) Create(fildediscussion models.FilDiscussionModel) (in
 func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 	var fildediscussion models.FilDiscussionModel
 
-	query := "SELECT id_fil_de_discussion, name, description, date_creation, open, archive FROM `Fil_de_discussion` WHERE `Fil_de_discussion`.id_fil_de_discussion = ?;"
+	query := "SELECT id_fil_de_discussion, name, description, date_creation FROM `Fil_de_discussion` WHERE `Fil_de_discussion`.id_fil_de_discussion = ?;"
 	sqlErr := r.dbContext.QueryRow(query, id).
-		Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation, &fildediscussion.Open, &fildediscussion.Archive)
+		Scan(&fildediscussion.Id, &fildediscussion.Name, &fildediscussion.Description, &fildediscussion.DateCreation)
 
 	if sqlErr != nil {
 		if sqlErr == sql.ErrNoRows {
@@ -166,14 +164,12 @@ func (r *FilsRepositories) ReadById(id int) (models.FilDiscussionModel, error) {
 }
 
 func (r *FilsRepositories) Update(fildediscussion models.FilDiscussionModel) error {
-	query := "UPDATE `Fil_de_discussion` SET `name`=?, `description`=?, `date_creation`=?, `open`=?, `archive`=? WHERE `Fil_de_discussion`.id_fil_de_discussion=?;"
+	query := "UPDATE `Fil_de_discussion` SET `name`=?, `description`=?, `date_creation`=? WHERE `Fil_de_discussion`.id_fil_de_discussion=?;"
 
 	sqlResult, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Name,
 		fildediscussion.Description,
 		fildediscussion.DateCreation,
-		fildediscussion.Open,
-		fildediscussion.Archive,
 		fildediscussion.Id,
 	)
 
@@ -216,7 +212,6 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int, conne
 	query := `
         SELECT 
             t.id_fil_de_discussion, t.name, t.description, t.date_creation,
-            t.open, t.archive,
             COALESCE(c.name, ''), COALESCE(c.Description, ''),
             COALESCE(s.name, ''), COALESCE(s.Description, ''),
             COALESCE(t.fk_utilisateur, 0)
@@ -248,7 +243,6 @@ func (r *FilsRepositories) ReadAllWithCategoryAndStatus(limit, offset int, conne
 		var t models.FilDiscussionFull
 		scanErr := result.Scan(
 			&t.Id, &t.Name, &t.Description, &t.DateCreation,
-			&t.Open, &t.Archive,
 			&t.CategorieName, &t.CategorieDescription,
 			&t.TagName, &t.TagDescription,
 			&t.Creator.Id,
@@ -285,7 +279,6 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 	query := `
 		SELECT 
 			t.id_fil_de_discussion, t.name, t.description, t.date_creation,
-			t.open, t.archive,
 			COALESCE(c.name, ''), COALESCE(c.Description, ''),
 			COALESCE(s.name, ''), COALESCE(s.Description, ''),
 			COALESCE(t.fk_utilisateur, 0)
@@ -300,7 +293,6 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 	var t models.FilDiscussionFull
 	err := r.dbContext.QueryRow(query, id).Scan(
 		&t.Id, &t.Name, &t.Description, &t.DateCreation,
-		&t.Open, &t.Archive,
 		&t.CategorieName, &t.CategorieDescription,
 		&t.TagName, &t.TagDescription,
 		&t.Creator.Id,
@@ -317,14 +309,12 @@ func (r *FilsRepositories) ReadByIdWithCategoryAndStatus(id int) (models.FilDisc
 func (r *FilsRepositories) UpdateFull(fildediscussion models.FilDiscussionModel) error {
 	query := `
 		UPDATE Fil_de_discussion
-		SET description = ?, open = ?, archive = ?
+		SET description = ?
 		WHERE id_fil_de_discussion = ?;
 	`
 
 	_, sqlErr := r.dbContext.Exec(query,
 		fildediscussion.Description,
-		fildediscussion.Open,
-		fildediscussion.Archive,
 		fildediscussion.Id,
 	)
 

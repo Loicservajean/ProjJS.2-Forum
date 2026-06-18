@@ -37,7 +37,6 @@ func (s *FilDiscussionService) Create(fils models.FilDiscussionFull) (int, error
 		Name:         fils.Name,
 		Description:  fils.Description,
 		DateCreation: dateNow,
-		Open:         fils.Open,
 		CreatorID:    fils.CreatorID,
 	})
 	if err != nil {
@@ -77,8 +76,6 @@ func (s *FilDiscussionService) UpdateFull(id int, fils models.FilDiscussionFull)
 		Name:        fils.Name,
 		Description: fils.Description,
 		DateCreation: fils.DateCreation,
-		Open:        fils.Open,
-		Archive:     fils.Archive,
 		CreatorID:   fils.CreatorID,
 	})
 	if err != nil {
