@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"rompelago/auth"
+	"strings"
 )
 
 // UserContextKey est la clé utilisée pour stocker les claims dans le contexte de la requête.
@@ -43,6 +44,26 @@ func RequireAuth(next http.Handler) http.Handler {
 			http.Redirect(w, r, "/connection", http.StatusSeeOther)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// RequireAuthAdmin protège une route web : redirige vers /connection si l'utilisateur
+// n'est pas authentifié (pas de claims dans le contexte) ou affiche une erreur si l'utilisateur n'est pas administrateur.
+func RequireAuthAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := r.Context().Value(UserContextKey).(*auth.Claims)
+		if !ok || claims == nil {
+			http.Redirect(w, r, "/connection", http.StatusSeeOther)
+			return
+		}
+
+		role := strings.TrimSpace(strings.ToLower(claims.Role))
+		if role != "admin" {
+			http.Error(w, "Accès interdit : utilisateur non administrateur", http.StatusForbidden)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

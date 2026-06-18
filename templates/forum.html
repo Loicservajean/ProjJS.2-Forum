@@ -13,38 +13,32 @@
   <!--google font-->
 </head>
 <body>
-  <header class="header">
-    <div class="align-header">
-      <a class="brand" href="/forum"></a>
-        <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
-        <div>
-          <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
-        </div>
-      </a>
-      <div class="auth-links">
+<header class="header">
+<div class="align-header">
+    <a class="brand" href="/forum">
+    <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+    <div>
+        <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+    </div>
+    </a>
+    <div class="auth-links">
+      {{if eq .ConnectedUserRole "admin"}}
+        <a class="btn-login" href="/admin">Gestion en tant qu'administrateur</a>
+      {{end}}
+      {{if .ConnectedUser}}
+        <a class="btn-register" href="/connection">Connected: {{.ConnectedUserName}}</a>
+      {{else}}
+
         <a class="btn-login" href="/connection">connection</a>
         <a class="btn-register" href="/inscription">Inscription</a>
-      </div>
     </div>
-  </header>
+    {{end}}
+</div>
+</header>
   <div id="volet_clos">
     <div id="volet">
-      <nav class="volet-nav">
-        <a href="/forum">Forum</a>
-        <a href="/nouveau">Nouveau fil</a>
-        <a href="/connection">Connexion</a>
-        <a href="/inscription">Inscription</a>
-      </nav>
-    <!-- Ajout de CSS ici -->
-      <form method="get" action="/forum">
-        <label for="categorie_id">Afficher selon la catégorie :</label>
-        <select id="categorie_id" name="categorie_id" onchange="this.form.submit()">
-          {{range .Categories}}
-            <option value="{{.Id}}" {{if eq $.Limit .Id}}selected{{end}}>{{.Name}}</option>
-          {{end}}
-          <option value="tout" {{if eq .Limit 0}}selected{{end}}>Tout afficher</option>
-        </select>
-      </form>
+      <p>test</p>
+      <p>test test</p>
       <a href="#volet" class="ouvrir">Ouvrir !</a>
           <a href="#volet_clos" class="fermer">fermer !</a>
     </div>

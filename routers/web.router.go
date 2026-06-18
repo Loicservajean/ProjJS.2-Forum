@@ -35,4 +35,8 @@ func RegisterWebRoutes(r *mux.Router, tc *controllers.WebFilsControllers, ac *co
 	r.Handle("/fil/{id}/message/{msgId}/update", middleware.RequireAuth(http.HandlerFunc(mc.UpdateMessagePage))).Methods("GET")
 	r.Handle("/fil/{id}/message/{msgId}/update", middleware.RequireAuth(http.HandlerFunc(mc.UpdateMessageAction))).Methods("POST")
 	r.Handle("/fil/{id}/message/{msgId}/delete", middleware.RequireAuth(http.HandlerFunc(mc.DeleteMessageAction))).Methods("POST")
+
+	// Admin
+	r.Handle("/admin", middleware.RequireAuthAdmin(http.HandlerFunc(tc.AdminPage))).Methods("GET")
+	r.Handle("/admin", middleware.RequireAuthAdmin(http.HandlerFunc(tc.DeleteFilAndMessage))).Methods("POST")
 }

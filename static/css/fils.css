@@ -136,6 +136,13 @@ header {
   border-radius: 6px;
 }
 
+.badge-ferme {
+  background: #ff0000;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
 .badge-archive {
   background: #e67e22;
   color: white;
@@ -309,15 +316,30 @@ header {
   color: #333;
 }
 
-.fil {
-  display: inline-block;
-  padding: 8px 16px;
+.fil-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   margin-bottom: 1rem;
+}
+
+.fil-actions form {
+  margin: 0;
+}
+
+.fil {
+  font-family: "Ubuntu", sans-serif;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
   color: #ffffff;
   border-radius: 20px;
   background-color: #055160;
-  font-weight: 700;
+  font-weight: 400;
+  font-style: normal;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .fil:hover {

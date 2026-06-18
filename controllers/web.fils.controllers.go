@@ -20,6 +20,7 @@ type WebFilsControllers struct {
 	templates   *template.Template
 	catRepo     *repositories.CategoryRepositories
 	statRepo    *repositories.StatusRepositories
+	userRepo    *repositories.UserRepositories
 }
 
 type CreatePageData struct {
@@ -45,18 +46,20 @@ type UpdateFilPageData struct {
 }
 
 type FilListPageData struct {
-	Fils          []models.FilDiscussionFull
-	Page          int
-	Limit         int
-	TotalPages    int
-	ConnectedUser string
-	Categories    []models.CategoriesDiscussion
+	Fils              []models.FilDiscussionFull
+	Page              int
+	Limit             int
+	TotalPages        int
+	ConnectedUser     string
+	ConnectedUserName string
+	ConnectedUserRole string
+	Categories        []models.CategoriesDiscussion
 }
 
 // Voilà les seules valeurs de "limit" qu'on accepte depuis l'URL. Si quelqu'un utilise des valeurs bizarre, on l'ignore.
 var limitesAutorisees = map[int]bool{10: true, 20: true, 30: true}
 
-func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
+func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories, userRepo *repositories.UserRepositories) *WebFilsControllers {
 	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
 		// Fonctions de calcul pour la page précédente et la suivante.
 		"additionner": func(a, b int) int { return a + b },
@@ -69,6 +72,7 @@ func InitWebFilsController(service *services.FilDiscussionService, postService *
 		templates:   tmpl,
 		catRepo:     catRepo,
 		statRepo:    statRepo,
+		userRepo:    userRepo,
 	}
 }
 
@@ -119,10 +123,18 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 
 	userID := ""
 	connectedUserID := 0
+	connectedUserName := ""
+	connectedUserRole := ""
 	if claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims); ok {
 		userID = claims.UserID
 		if id, err := strconv.Atoi(claims.UserID); err == nil {
 			connectedUserID = id
+			if c.userRepo != nil {
+				if user, err := c.userRepo.FindById(id); err == nil {
+					connectedUserName = user.Name
+					connectedUserRole = user.Role
+				}
+			}
 		}
 	}
 
@@ -163,7 +175,16 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 		fils = filtered
 	}
 
-	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages, ConnectedUser: userID, Categories: categories}
+	donnees := FilListPageData{
+		Fils:              fils,
+		Page:              page,
+		Limit:             limite,
+		TotalPages:        totalPages,
+		ConnectedUser:     userID,
+		ConnectedUserName: connectedUserName,
+		ConnectedUserRole: connectedUserRole,
+		Categories:        categories,
+	}
 	if err := c.templates.ExecuteTemplate(w, "fils.list", donnees); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
@@ -266,7 +287,9 @@ func (c *WebFilsControllers) DeleteAction(w http.ResponseWriter, r *http.Request
 		http.Redirect(w, r, "/connection", http.StatusSeeOther)
 		return
 	}
-	if claims.UserID != strconv.Itoa(fil.Creator.Id) {
+
+	isAdmin := c.isAdmin(claims)
+	if !isAdmin && claims.UserID != strconv.Itoa(fil.Creator.Id) {
 		http.Error(w, "Accès interdit", http.StatusForbidden)
 		return
 	}
@@ -341,6 +364,18 @@ func (c *WebFilsControllers) UpdateFil(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Fils introuvable : "+err.Error(), http.StatusNotFound)
 		return
 	}
+
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims == nil {
+		http.Redirect(w, r, "/connection", http.StatusSeeOther)
+		return
+	}
+	isAdmin := c.isAdmin(claims)
+	if !isAdmin && claims.UserID != strconv.Itoa(fil.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
 	categories, err := c.catRepo.ReadAll()
 	if err != nil {
 		http.Error(w, "Erreur chargement catégories : "+err.Error(), http.StatusInternalServerError)
@@ -397,4 +432,88 @@ func (c *WebFilsControllers) UpdateAction(w http.ResponseWriter, r *http.Request
 	}
 
 	http.Redirect(w, r, "/forum", http.StatusSeeOther)
+}
+
+func (c *WebFilsControllers) AdminPage(w http.ResponseWriter, r *http.Request) {
+	fils, err := c.service.ReadAllFull(0, 0, 0)
+	if err != nil {
+		http.Error(w, "Erreur récupération des fils : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	messages, err := c.postService.ReadAllMessages()
+	if err != nil {
+		http.Error(w, "Erreur récupération des messages : "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := c.templates.ExecuteTemplate(w, "admin", map[string]interface{}{
+		"Fils":     fils,
+		"Messages": messages,
+	}); err != nil {
+		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (c *WebFilsControllers) DeleteFilAndMessage(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Identifiant invalide", http.StatusBadRequest)
+		return
+	}
+
+	msgId, err := strconv.Atoi(mux.Vars(r)["msgId"])
+	if err != nil || msgId <= 0 {
+		http.Error(w, "Identifiant de message invalide", http.StatusBadRequest)
+		return
+	}
+
+	fil, err := c.service.ReadByIdWithDetails(id)
+	if err != nil {
+		http.Error(w, "Fils introuvable : "+err.Error(), http.StatusNotFound)
+		return
+	}
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims == nil {
+		http.Redirect(w, r, "/connection", http.StatusSeeOther)
+		return
+	}
+	if claims.UserID != strconv.Itoa(fil.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
+	if err := c.service.Delete(id); err != nil {
+		http.Error(w, "Erreur lors de la suppression : "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	post, err := c.postService.ReadByIdFull(msgId)
+	if err != nil {
+		http.Error(w, "Message introuvable", http.StatusNotFound)
+		return
+	}
+	if claims.UserID != strconv.Itoa(post.Creator.Id) {
+		http.Error(w, "Accès interdit", http.StatusForbidden)
+		return
+	}
+
+	if err := c.postService.Delete(msgId); err != nil {
+		http.Error(w, "Erreur lors de la suppression : "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, "/forum", http.StatusSeeOther)
+}
+
+func (c *WebFilsControllers) isAdmin(claims *auth.Claims) bool {
+	if c.userRepo == nil {
+		return false
+	}
+	id, err := strconv.Atoi(claims.UserID)
+	if err != nil {
+		return false
+	}
+	user, err := c.userRepo.FindById(id)
+	if err != nil {
+		return false
+	}
+	return user.Role == "admin"
 }
