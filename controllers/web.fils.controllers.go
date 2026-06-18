@@ -20,6 +20,7 @@ type WebFilsControllers struct {
 	templates   *template.Template
 	catRepo     *repositories.CategoryRepositories
 	statRepo    *repositories.StatusRepositories
+	userRepo    *repositories.UserRepositories
 }
 
 type CreatePageData struct {
@@ -45,18 +46,19 @@ type UpdateFilPageData struct {
 }
 
 type FilListPageData struct {
-	Fils          []models.FilDiscussionFull
-	Page          int
-	Limit         int
-	TotalPages    int
-	ConnectedUser string
-	Categories    []models.CategoriesDiscussion
+	Fils              []models.FilDiscussionFull
+	Page              int
+	Limit             int
+	TotalPages        int
+	ConnectedUser     string
+	ConnectedUserName string
+	Categories        []models.CategoriesDiscussion
 }
 
 // Voilà les seules valeurs de "limit" qu'on accepte depuis l'URL. Si quelqu'un utilise des valeurs bizarre, on l'ignore.
 var limitesAutorisees = map[int]bool{10: true, 20: true, 30: true}
 
-func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories) *WebFilsControllers {
+func InitWebFilsController(service *services.FilDiscussionService, postService *services.PostDiscussionService, catRepo *repositories.CategoryRepositories, statRepo *repositories.StatusRepositories, userRepo *repositories.UserRepositories) *WebFilsControllers {
 	fonctionsDisponiblesDansLesTemplates := template.FuncMap{
 		// Fonctions de calcul pour la page précédente et la suivante.
 		"additionner": func(a, b int) int { return a + b },
@@ -69,6 +71,7 @@ func InitWebFilsController(service *services.FilDiscussionService, postService *
 		templates:   tmpl,
 		catRepo:     catRepo,
 		statRepo:    statRepo,
+		userRepo:    userRepo,
 	}
 }
 
@@ -119,10 +122,16 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 
 	userID := ""
 	connectedUserID := 0
+	connectedUserName := ""
 	if claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims); ok {
 		userID = claims.UserID
 		if id, err := strconv.Atoi(claims.UserID); err == nil {
 			connectedUserID = id
+			if c.userRepo != nil {
+				if user, err := c.userRepo.FindById(id); err == nil {
+					connectedUserName = user.Name
+				}
+			}
 		}
 	}
 
@@ -163,7 +172,15 @@ func (c *WebFilsControllers) ListPage(w http.ResponseWriter, r *http.Request) {
 		fils = filtered
 	}
 
-	donnees := FilListPageData{Fils: fils, Page: page, Limit: limite, TotalPages: totalPages, ConnectedUser: userID, Categories: categories}
+	donnees := FilListPageData{
+		Fils:              fils,
+		Page:              page,
+		Limit:             limite,
+		TotalPages:        totalPages,
+		ConnectedUser:     userID,
+		ConnectedUserName: connectedUserName,
+		Categories:        categories,
+	}
 	if err := c.templates.ExecuteTemplate(w, "fils.list", donnees); err != nil {
 		http.Error(w, "Erreur rendu template : "+err.Error(), http.StatusInternalServerError)
 	}
