@@ -22,6 +22,10 @@ func (s *PostDiscussionService) ReadByFilId(filId int, limit, offset int, sort s
 	return s.PostRepository.ReadPostsByFilId(filId, limit, offset, sort)
 }
 
+func (s *PostDiscussionService) ReadAllMessages() ([]models.PostModel, error) {
+	return s.PostRepository.ReadAllMessages()
+}
+
 func (s *PostDiscussionService) CountByFilId(filId int) (int, error) {
 	if filId <= 0 {
 		return 0, fmt.Errorf("identifiant de fil invalide : %d", filId)

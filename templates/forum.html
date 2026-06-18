@@ -22,6 +22,9 @@
     </div>
     </a>
     <div class="auth-links">
+      {{if eq .ConnectedUserRole "admin"}}
+        <a class="btn-login" href="/admin">Gestion en tant qu'administrateur</a>
+      {{end}}
       {{if .ConnectedUser}}
         <a class="btn-register" href="/connection">Connected: {{.ConnectedUserName}}</a>
       {{else}}

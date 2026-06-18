@@ -1,0 +1,77 @@
+{{define "admin"}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fonctionnalités Admin - Rompelago</title>
+  <link rel="stylesheet" href="/static/css/user.css">
+</head>
+<body>
+  <header class="header">
+    <div class="align-header">
+      <div class="brand">
+        <img class="logo" src="/static/assets/logo.png" alt="Rompelago Logo">
+        <div>
+          <img class="text" src="/static/assets/ROMPELAGO.png" alt="Rompelago Logo">
+        </div>
+      </div>
+      <div class="auth-links">
+        {{if .}}
+          <form action="/logout" method="post" style="display:inline">
+            <button type="submit" class="btn-login">Se déconnecter</button>
+          </form>
+        {{else}}
+          <a class="btn-login" href="/connection">connection</a>
+          <a class="btn-register" href="/inscription">Inscription</a>
+        {{end}}
+      </div>
+    </div>
+  </header>
+  <main>
+    <h3>Actions Administratives</h3>
+    <section>
+      <h4>Gérer les Fils de discussion</h4>
+      {{if .Fils}}
+        <ul>
+          {{range .Fils}}
+            <li>
+              <p>{{.Name}}</p>
+              <div class="actions">
+                <a href="/fil/{{.Id}}/update">Modifier</a>
+                <form action="/fil/{{.Id}}/delete" method="post" style="display:inline" onsubmit="return confirm('Supprimer ce fil et tous ses messages ?')">
+                  <button type="submit">Supprimer</button>
+                </form>
+              </div>
+            </li>
+          {{end}}
+        </ul>
+      {{else}}
+        <p>Aucun fil de discussion trouvé.</p>
+      {{end}}
+    </section>
+
+    <section>
+      <h4>Gérer les Messages dans les Fils de discussion</h4>
+      {{if .Messages}}
+        <ul>
+          {{range .Messages}}
+            <li>
+              <p>{{.Name}}</p>
+              <div class="actions">
+                <a href="/fil/{{.FilAssocié.Id}}/message/{{.Id}}/update">Modifier</a>
+                <form action="/fil/{{.FilAssocié.Id}}/message/{{.Id}}/delete" method="post" style="display:inline" onsubmit="return confirm('Supprimer ce message ?')">
+                  <button type="submit">Supprimer</button>
+                </form>
+              </div>
+            </li>
+          {{end}}
+        </ul>
+      {{else}}
+        <p>Aucun message trouvé.</p>
+      {{end}}
+    </section>
+  </main>
+</body>
+</html>
+{{end}}

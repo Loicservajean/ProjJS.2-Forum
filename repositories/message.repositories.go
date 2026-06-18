@@ -68,6 +68,38 @@ func (r *PostRepositories) CountMessagesByFilId(filId int) (int, error) {
 	return total, nil
 }
 
+func (r *PostRepositories) ReadAllMessages() ([]models.PostModel, error) {
+	query := `
+		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
+		       m.fk_fil_de_discussion, u.id_utilisateur, u.pseudo
+		FROM Message m
+		LEFT JOIN Utilisateur u ON u.id_utilisateur = m.fk_utilisateur
+		ORDER BY m.date_envoi DESC
+	`
+
+	result, err := r.dbContext.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lecture messages admin - %v", err)
+	}
+	defer result.Close()
+
+	var list []models.PostModel
+	for result.Next() {
+		var post models.PostModel
+		scanErr := result.Scan(
+			&post.Id, &post.Name, &post.Contenu, &post.DateEnvoi,
+			&post.ScorePop, &post.NbLike, &post.NbDislike,
+			&post.FilAssocié.Id, &post.Creator.Id, &post.Creator.Name,
+		)
+		if scanErr != nil {
+			log.Printf("erreur scan message admin - %v", scanErr)
+			continue
+		}
+		list = append(list, post)
+	}
+	return list, nil
+}
+
 // CreatePost insère un message dans un fil de discussion.
 func (r *PostRepositories) CreatePost(post models.PostModel) (int, error) {
 	query := `
