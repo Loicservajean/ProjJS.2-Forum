@@ -16,14 +16,18 @@ func InitPostRepositories(dbContext *sql.DB) *PostRepositories {
 }
 
 // limit à 0 veut dire qu'on ne filtre rien du tout.
-func (r *PostRepositories) ReadPostsByFilId(filId int, limit, offset int) ([]models.PostModel, error) {
+func (r *PostRepositories) ReadPostsByFilId(filId int, limit, offset int, sort string) ([]models.PostModel, error) {
+	orderBy := "m.date_envoi DESC"
+	if sort == "popularity" {
+		orderBy = "m.scorepop DESC, m.date_envoi DESC"
+	}
 	query := `
 		SELECT m.id_message, m.name, m.contenu, m.date_envoi, m.scorepop, m.nb_like, m.nb_dislike,
 		       u.id_utilisateur, u.pseudo
 		FROM Message m
 		LEFT JOIN Utilisateur u ON u.id_utilisateur = m.fk_utilisateur
 		WHERE m.fk_fil_de_discussion = ?
-		ORDER BY m.date_envoi ASC
+		ORDER BY ` + orderBy + `
 	`
 	args := []interface{}{filId}
 	if limit > 0 {
